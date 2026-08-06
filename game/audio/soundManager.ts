@@ -19,6 +19,10 @@ type SoundId =
   | "elimination"
   | "countdown"
   | "roundVictory"
+  | "levelUp"
+  | "coinGain"
+  | "purchase"
+  | "equip"
   | "uiClick";
 
 class SoundManager {
@@ -129,6 +133,21 @@ class SoundManager {
         break;
       case "uiClick":
         this.playClick(ctx, 500, 0.02, vol * 0.4);
+        break;
+      case "levelUp":
+        [392, 523, 659, 784].forEach((f, i) => this.playPercussiveTone(ctx, f, 0.35, "triangle", vol * 0.45, i * 0.09));
+        break;
+      case "coinGain":
+        this.playPercussiveTone(ctx, 1046, 0.08, "sine", vol * 0.4);
+        this.playPercussiveTone(ctx, 1568, 0.1, "sine", vol * 0.35, 0.05);
+        break;
+      case "purchase":
+        this.playPercussiveTone(ctx, 660, 0.1, "triangle", vol * 0.4);
+        this.playPercussiveTone(ctx, 880, 0.14, "triangle", vol * 0.4, 0.07);
+        break;
+      case "equip":
+        this.playClick(ctx, 700, 0.03, vol * 0.45);
+        this.playPercussiveTone(ctx, 440, 0.08, "sine", vol * 0.3, 0.03);
         break;
     }
   }

@@ -1,13 +1,58 @@
 # CHANGELOG.md
 
-No version tags exist in this project (no git history at all — see
-`PROJECT_STATE.md`). Entries below are reconstructed from file
-modification timestamps and direct knowledge of what was built, dated as
-precisely as the available evidence allows. This file did not exist
-before this documentation handoff; both entries below were written
-retroactively in the same pass.
+Git history exists as of 2026-08-06 (see `PROJECT_STATE.md`) — entries
+before that point were reconstructed from file modification timestamps
+and direct knowledge of what was built, since this file didn't exist yet
+during the initial build. Entries from this point on correspond to real
+commits.
 
 ## [Unreleased]
+
+### v0.2.0 — Lobby Update (2026-08-06)
+
+Large expansion pass turning the game from a bare Bot Duel/Online 1v1
+prototype into a live-service-style hub, per a detailed product spec.
+Full detail in `SESSION_LOG.md`; see also the in-game Patch Notes
+(`game/config/patchNotes.ts`).
+
+- **New character rig** (`components/game/CharacterModel.tsx`): replaced
+  the single-capsule silhouette with a jointed pelvis/spine/shoulder/
+  elbow/hip/knee rig (still procedural geometry, no GLTF), driven by a
+  new declarative animation system (`game/animation/pose.ts`) covering
+  idle/walk/sprint/jump/fall/land locomotion and rifle/shotgun/pistol/
+  reload/heal/shield/build arm poses, plus fire-recoil and hit-flinch
+  one-shots and an eliminated/victory override. Wired into the local
+  player, bots, and remote players.
+- **New Lobby hub** (`components/ui/Lobby.tsx`) replacing the old
+  `MainMenu`: Play/Locker/Shop/Quests/Profile tabs, an idle-animated 3D
+  character preview reflecting the equipped skin, a level/XP bar, coin
+  balance, a daily-reward button with a claimable-today badge, a news
+  panel, and a patch notes viewer.
+- **Player progression** (`stores/profileStore.ts`,
+  `game/config/levels.ts`): 50 levels with an increasing XP curve, XP
+  awarded for completing/winning matches, eliminations, every 500
+  damage dealt, and first win of the day; coins awarded for playing and
+  winning; full match/win/loss/elimination/damage/streak stats tracked
+  and shown in the new Profile tab. Wired into real match outcomes via
+  `MatchResults.tsx`, which now shows an XP/coins/level-up summary.
+- **Daily login rewards** (`game/config/dailyRewards.ts`): a 7-day coin/
+  cosmetic cycle, one claim per calendar day, shown as a popup on lobby
+  entry when available.
+- **Cosmetic system** (`stores/inventoryStore.ts`,
+  `game/config/cosmetics.ts`): 8 original starter skins (Street Runner,
+  Vanguard-9, Neon Circuit, Dune Wanderer, Frostline, Casual Comp,
+  Nightfall, 8-Bit Brawler) plus the default, each with a name, rarity,
+  description, and distinct colors — purchasable in a real (if not yet
+  daily-rotating) Shop tab using only earned Arena Coins, equippable in
+  a real Locker tab. No cosmetic affects gameplay stats.
+- **Training Arena** — a new third game mode: spawn alone, shoot
+  respawning target dummies, build freely, no score or matchmaking,
+  reuses the existing pause-menu "Reset Arena" for instant resets.
+- Six new synthesized UI sounds (level up, coin gain, purchase, equip)
+  and a `damageDealt` counter on `matchStore` for match-end stat
+  tracking.
+- Initialized a git repository for this project (previously untracked,
+  zero commits anywhere) and began committing checkpoints per phase.
 
 ### 2026-08-06 (later same day, third part) — First real deployment
 

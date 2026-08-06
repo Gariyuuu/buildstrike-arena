@@ -9,6 +9,7 @@ import { EffectsLayer } from "@/components/game/EffectsLayer";
 import { BuildInstance } from "@/components/game/BuildInstance";
 import { BotDuelScene } from "@/components/game/BotDuelScene";
 import { OnlineDuelScene } from "@/components/game/OnlineDuelScene";
+import { TrainingArenaScene } from "@/components/game/TrainingArenaScene";
 import { DamageableProvider } from "@/game/physics/damageable";
 import { useBuildsStore } from "@/stores/buildsStore";
 import { useGameStore } from "@/stores/gameStore";
@@ -49,6 +50,7 @@ export function GameCanvas() {
               ))}
               {mode === "bot" && <BotDuelScene domElement={domRef} />}
               {mode === "online" && <OnlineDuelScene domElement={domRef} />}
+              {mode === "training" && <TrainingArenaScene domElement={domRef} />}
             </DamageableProvider>
           </Physics>
           <EffectsLayer quality={graphicsQuality as "low" | "medium" | "high"} />

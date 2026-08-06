@@ -15,6 +15,9 @@ interface MatchState {
   matchWinner: Side | null;
   opponentDisconnected: boolean;
   resetSignal: number;
+  /** Cumulative damage the local player has dealt this match (persists across rounds, resets on a new match/rematch) — used for profile XP/stat tracking. */
+  damageDealt: number;
+  addDamageDealt: (amount: number) => void;
   startMatch: () => void;
   setCountdown: (value: number) => void;
   beginCombat: () => void;
@@ -40,10 +43,12 @@ const initial = {
   matchWinner: null,
   opponentDisconnected: false,
   resetSignal: 0,
+  damageDealt: 0,
 };
 
 export const useMatchStore = create<MatchState>((set, get) => ({
   ...initial,
+  addDamageDealt: (amount) => set((s) => ({ damageDealt: s.damageDealt + Math.max(0, amount) })),
   startMatch: () =>
     set((s) => ({
       ...initial,
@@ -75,7 +80,7 @@ export const useMatchStore = create<MatchState>((set, get) => ({
     })),
   manualReset: () => set((s) => ({ resetSignal: s.resetSignal + 1 })),
   setOpponentDisconnected: (v) => set({ opponentDisconnected: v }),
-  reset: () => set({ ...initial, score: { local: 0, opponent: 0 } }),
+  reset: () => set({ ...initial, score: { local: 0, opponent: 0 }, damageDealt: 0 }),
   applyServerRoundEnd: (winner, score) => {
     const matchWinner = score[winner] >= MATCH_CONFIG.roundsToWin ? winner : null;
     set({ score, roundWinner: winner, phase: matchWinner ? "match-end" : "round-end", matchWinner });
@@ -93,6 +98,7 @@ export const useMatchStore = create<MatchState>((set, get) => ({
       countdown,
       round: isNewMatch ? 1 : s.round,
       score: isNewMatch ? { local: 0, opponent: 0 } : s.score,
+      damageDealt: isNewMatch ? 0 : s.damageDealt,
       roundWinner: null,
       matchWinner: null,
       resetSignal: s.resetSignal + 1,

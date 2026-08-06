@@ -4,7 +4,7 @@ import { create } from "zustand";
 
 export type GameScreen = "menu" | "instructions" | "settings" | "playing";
 
-export type GameMode = "bot" | "online" | null;
+export type GameMode = "bot" | "online" | "training" | null;
 
 interface GameState {
   screen: GameScreen;

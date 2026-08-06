@@ -26,6 +26,7 @@ import { useGameStore } from "@/stores/gameStore";
 import { useNetworkStore } from "@/stores/networkStore";
 import { useBuildsStore } from "@/stores/buildsStore";
 import { useSettingsStore } from "@/stores/settingsStore";
+import { useProfileStore } from "@/stores/profileStore";
 import type { GameAdapter, Vec3 } from "@/game/networking/adapter";
 import { CharacterModel } from "@/components/game/CharacterModel";
 import type { ArmPoseId } from "@/game/animation/pose";
@@ -389,6 +390,11 @@ export function LocalPlayer({
         effectsBus.emit({ kind: "impact", point: [g.point.x, g.point.y, g.point.z], color: "#ff5555" });
         effectsBus.emit({ kind: "damageNumber", point: [g.point.x, g.point.y + 0.3, g.point.z], amount: dmg, headshot: g.headshot });
         reportedHit = { kind: "player", headshot: g.headshot, pellets: g.count };
+        // Client-side computed value, used only for profile stats/XP (see
+        // profileStore/MatchResults) — never for actual gameplay health,
+        // which stays server-authoritative in online mode.
+        useMatchStore.getState().addDamageDealt(dmg);
+        useProfileStore.getState().addWeaponDamage(weapon.id, dmg);
       }
     }
 

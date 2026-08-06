@@ -5,7 +5,7 @@ import dynamic from "next/dynamic";
 import { useGameStore } from "@/stores/gameStore";
 import { useSettingsStore } from "@/stores/settingsStore";
 import { soundManager } from "@/game/audio/soundManager";
-import { MainMenu } from "@/components/ui/MainMenu";
+import { Lobby } from "@/components/ui/Lobby";
 import { InstructionsModal } from "@/components/ui/InstructionsModal";
 import { SettingsPanel } from "@/components/ui/SettingsPanel";
 import { LoadingScreen } from "@/components/ui/LoadingScreen";
@@ -27,7 +27,7 @@ export default function Home() {
 
   return (
     <div className="h-full w-full">
-      {screen === "menu" && <MainMenu />}
+      {screen === "menu" && <Lobby />}
       {screen === "instructions" && <InstructionsModal />}
       {screen === "settings" && <SettingsPanel />}
       {screen === "playing" && <GameCanvas />}

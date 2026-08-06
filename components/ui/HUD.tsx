@@ -42,7 +42,7 @@ export function HUD({ domElement }: { domElement: React.RefObject<HTMLDivElement
         <>
           <Crosshair />
           <CombatHud />
-          <Scoreboard />
+          {mode !== "training" && <Scoreboard />}
         </>
       )}
       {mode === "online" && <ConnectionStatus />}
