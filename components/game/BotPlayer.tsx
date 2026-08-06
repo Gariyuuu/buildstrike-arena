@@ -24,6 +24,7 @@ import { usePlayerStore } from "@/stores/playerStore";
 import { useMatchStore } from "@/stores/matchStore";
 import { useBuildsStore } from "@/stores/buildsStore";
 import { CharacterModel } from "@/components/game/CharacterModel";
+import type { ArmPoseId } from "@/game/animation/pose";
 import { WeaponView } from "@/components/game/WeaponView";
 import type { Vec3 } from "@/game/networking/adapter";
 
@@ -54,6 +55,9 @@ export function BotPlayer({ difficulty, spawn }: { difficulty: BotDifficulty; sp
   const health = useRef(100);
   const shield = useRef(0);
   const buildCooldown = useRef(0);
+  const armPoseRef = useRef<ArmPoseId>("rifle");
+  const hitReactRef = useRef(0);
+  const [isDead, setIsDead] = useState(false);
 
   const resetSignal = useMatchStore((s) => s.resetSignal);
 
@@ -67,6 +71,7 @@ export function BotPlayer({ difficulty, spawn }: { difficulty: BotDifficulty; sp
     facingYaw.current = spawn.yaw;
     if (rigidBody.current) rigidBody.current.setTranslation({ x: spawn.position[0], y: spawn.position[1], z: spawn.position[2] }, true);
     usePlayerStore.getState().setOpponent({ health: 100, shield: 0, connected: true });
+    setIsDead(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resetSignal]);
 
@@ -89,11 +94,13 @@ export function BotPlayer({ difficulty, spawn }: { difficulty: BotDifficulty; sp
         }
         health.current = Math.max(0, health.current - remaining);
         damagedUntil.current = performance.now() + 1500;
+        hitReactRef.current = performance.now();
         usePlayerStore.getState().setOpponent({ health: health.current, shield: shield.current });
         if (health.current <= 0) {
           soundManager.play("elimination");
           usePlayerStore.getState().setEliminationMessage("Opponent eliminated");
           useMatchStore.getState().endRound("local");
+          setIsDead(true);
         }
       },
     };
@@ -140,6 +147,7 @@ export function BotPlayer({ difficulty, spawn }: { difficulty: BotDifficulty; sp
     };
 
     const intent = brain.update(dt, perception, now / 1000);
+    armPoseRef.current = healItem.current ? (healItem.current === "shieldPotion" ? "shield" : "heal") : currentWeapon;
 
     // ---- Healing ----
     if (intent.wantsToHeal) {
@@ -277,7 +285,17 @@ export function BotPlayer({ difficulty, spawn }: { difficulty: BotDifficulty; sp
           <capsuleGeometry args={[MOVEMENT.capsuleRadius + 0.03, MOVEMENT.capsuleHalfHeight * 2, 4, 8]} />
           <meshBasicMaterial visible={false} />
         </mesh>
-        <CharacterModel color="#c96b3a" accent="#ff8a33" movingRef={movingRef} />
+        <CharacterModel
+          color="#c96b3a"
+          accent="#ff8a33"
+          movingRef={movingRef}
+          groundedRef={grounded}
+          velocityYRef={velocityY}
+          armPoseRef={armPoseRef}
+          fireReactRef={fireFlashRef}
+          hitReactRef={hitReactRef}
+          eliminated={isDead}
+        />
         <WeaponView weapon={currentWeapon} fireFlashRef={fireFlashRef} reloading={false} switchFlashUntilRef={noSwitchFlash} accent="#ff8a33" />
       </group>
     </group>

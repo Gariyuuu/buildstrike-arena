@@ -1,85 +1,324 @@
 "use client";
 
-import { useRef } from "react";
+import { useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { MOVEMENT } from "@/game/config/movement";
+import {
+  ARM_POSES,
+  LOCOMOTION_POSES,
+  ANIM_DAMPING,
+  ONE_SHOT_DURATIONS,
+  type ArmPoseId,
+  type LocomotionId,
+} from "@/game/animation/pose";
 
-export interface CharacterModelHandle {
-  leftLeg: THREE.Mesh | null;
-  rightLeg: THREE.Mesh | null;
+/** Full cosmetic material/color override — every field optional, falls back to the base color/accent. */
+export interface CharacterSkin {
+  jacketColor?: string;
+  pantsColor?: string;
+  shoeColor?: string;
+  skinTone?: string;
+  hairColor?: string;
+  accentColor?: string;
+  hasHair?: boolean;
 }
 
-/** Original low-poly character built entirely from primitive geometry. */
+const DEFAULT_SKIN_TONE = "#e7ddce";
+const DEFAULT_HAIR = "#2a2118";
+
+function damp(current: number, target: number, lambda: number, dt: number) {
+  return THREE.MathUtils.damp(current, target, lambda, dt);
+}
+
+/**
+ * Original stylized low-poly character built entirely from primitive
+ * geometry (no GLTF/skeletal assets, consistent with the rest of the
+ * project). A small procedural "rig" of nested pivot groups stands in for
+ * bones: each limb segment is parented to a pivot at its joint so rotating
+ * the pivot bends the limb at the right place (shoulder/elbow, hip/knee).
+ *
+ * Animation is driven by damping current joint rotations toward per-state
+ * pose targets (see game/animation/pose.ts) instead of snapping, so
+ * transitions between e.g. idle <-> sprint <-> reload blend smoothly.
+ */
 export function CharacterModel({
   color,
   accent,
   movingRef,
   shadows = true,
+  skin,
+  groundedRef,
+  velocityYRef,
+  armPoseRef,
+  fireReactRef,
+  hitReactRef,
+  eliminated = false,
+  victory = false,
 }: {
   color: string;
   accent: string;
   movingRef: React.RefObject<number>; // 0..1 movement speed fraction, read per-frame
   shadows?: boolean;
+  skin?: CharacterSkin;
+  /** Per-frame refs driving the animation state machine — all optional, default to idle/grounded/no-weapon. */
+  groundedRef?: React.RefObject<boolean>;
+  velocityYRef?: React.RefObject<number>;
+  armPoseRef?: React.RefObject<ArmPoseId>;
+  fireReactRef?: React.RefObject<number>; // timestamp of last shot fired
+  hitReactRef?: React.RefObject<number>; // timestamp of last damage taken
+  eliminated?: boolean;
+  victory?: boolean;
 }) {
   const leftLeg = useRef<THREE.Mesh>(null);
   const rightLeg = useRef<THREE.Mesh>(null);
-  const leftArm = useRef<THREE.Mesh>(null);
-  const rightArm = useRef<THREE.Mesh>(null);
-  const phase = useRef(0);
 
-  useFrame((_, dt) => {
-    const speed = movingRef.current ?? 0;
-    phase.current += dt * (6 + speed * 4);
-    const swing = Math.sin(phase.current) * 0.5 * speed;
-    if (leftLeg.current) leftLeg.current.rotation.x = swing;
-    if (rightLeg.current) rightLeg.current.rotation.x = -swing;
-    if (leftArm.current) leftArm.current.rotation.x = -swing * 0.6;
-    if (rightArm.current) rightArm.current.rotation.x = swing * 0.6 * 0.3 - 0.2;
+  // Joint pivot groups.
+  const hips = useRef<THREE.Group>(null);
+  const spine = useRef<THREE.Group>(null);
+  const head = useRef<THREE.Group>(null);
+  const leftHip = useRef<THREE.Group>(null);
+  const rightHip = useRef<THREE.Group>(null);
+  const leftKnee = useRef<THREE.Group>(null);
+  const rightKnee = useRef<THREE.Group>(null);
+  const leftShoulder = useRef<THREE.Group>(null);
+  const rightShoulder = useRef<THREE.Group>(null);
+  const leftElbow = useRef<THREE.Group>(null);
+  const rightElbow = useRef<THREE.Group>(null);
+
+  const phase = useRef(0);
+  const cur = useRef({
+    legAmp: 0,
+    hipDrop: 0,
+    spineLean: 0,
+    kneeL: 0,
+    kneeR: 0,
+    shoulderXL: 0,
+    shoulderXR: 0,
+    shoulderZL: 0,
+    shoulderZR: 0,
+    elbowXL: 0,
+    elbowXR: 0,
+    headPitch: 0,
+    collapse: 0,
   });
 
-  const bodyHeight = MOVEMENT.capsuleHalfHeight * 2 + MOVEMENT.capsuleRadius * 2;
+  useFrame((_, rawDt) => {
+    const dt = Math.min(rawDt, 1 / 20);
+    const speed = movingRef.current ?? 0;
+    const grounded = groundedRef?.current ?? true;
+    const velY = velocityYRef?.current ?? 0;
+    const armPoseId: ArmPoseId = armPoseRef?.current ?? "none";
+    const now = performance.now();
+    const c = cur.current;
+
+    // ---- Determine locomotion state ----
+    let locomotion: LocomotionId;
+    if (!grounded) {
+      locomotion = velY > 0.5 ? "jump" : "fall";
+    } else if (speed > 0.7) {
+      locomotion = "sprint";
+    } else if (speed > 0.05) {
+      locomotion = "walk";
+    } else {
+      locomotion = "idle";
+    }
+    const loco = LOCOMOTION_POSES[locomotion];
+    const arm = ARM_POSES[armPoseId];
+
+    // ---- One-shot reactive kicks (fire recoil / hit flinch), additive ----
+    const firedAgo = fireReactRef ? now - (fireReactRef.current ?? -Infinity) : Infinity;
+    const fireKick = firedAgo < ONE_SHOT_DURATIONS.fire ? 1 - firedAgo / ONE_SHOT_DURATIONS.fire : 0;
+    const hitAgo = hitReactRef ? now - (hitReactRef.current ?? -Infinity) : Infinity;
+    const hitKick = hitAgo < ONE_SHOT_DURATIONS.hit ? 1 - hitAgo / ONE_SHOT_DURATIONS.hit : 0;
+
+    // ---- Blend toward targets ----
+    const targetCollapse = eliminated ? 1 : 0;
+    c.collapse = damp(c.collapse, targetCollapse, 6, dt);
+
+    if (victory) {
+      c.shoulderXL = damp(c.shoulderXL, -2.6, ANIM_DAMPING.arms, dt);
+      c.shoulderXR = damp(c.shoulderXR, -2.6, ANIM_DAMPING.arms, dt);
+      c.shoulderZL = damp(c.shoulderZL, 0.3, ANIM_DAMPING.arms, dt);
+      c.shoulderZR = damp(c.shoulderZR, 0.3, ANIM_DAMPING.arms, dt);
+      c.elbowXL = damp(c.elbowXL, 0.2, ANIM_DAMPING.arms, dt);
+      c.elbowXR = damp(c.elbowXR, 0.2, ANIM_DAMPING.arms, dt);
+      c.spineLean = damp(c.spineLean, -0.08, ANIM_DAMPING.spine, dt);
+    } else {
+      c.shoulderXL = damp(c.shoulderXL, arm.shoulderX[0] - hitKick * 0.3, ANIM_DAMPING.arms, dt);
+      c.shoulderXR = damp(c.shoulderXR, arm.shoulderX[1] - fireKick * 0.12 - hitKick * 0.3, ANIM_DAMPING.arms, dt);
+      c.shoulderZL = damp(c.shoulderZL, arm.shoulderZ[0], ANIM_DAMPING.arms, dt);
+      c.shoulderZR = damp(c.shoulderZR, arm.shoulderZ[1], ANIM_DAMPING.arms, dt);
+      c.elbowXL = damp(c.elbowXL, arm.elbowX[0], ANIM_DAMPING.arms, dt);
+      c.elbowXR = damp(c.elbowXR, arm.elbowX[1] + fireKick * 0.2, ANIM_DAMPING.arms, dt);
+      c.spineLean = damp(c.spineLean, loco.spineLean + arm.spineLean + hitKick * 0.35, ANIM_DAMPING.spine, dt);
+    }
+
+    c.legAmp = damp(c.legAmp, loco.legAmplitude, ANIM_DAMPING.locomotion, dt);
+    c.hipDrop = damp(c.hipDrop, loco.hipDrop, ANIM_DAMPING.locomotion, dt);
+    c.kneeL = damp(c.kneeL, loco.kneeBend[0], ANIM_DAMPING.locomotion, dt);
+    c.kneeR = damp(c.kneeR, loco.kneeBend[1], ANIM_DAMPING.locomotion, dt);
+    c.headPitch = damp(c.headPitch, armPoseId === "build" || armPoseId === "reload" ? 0.18 : 0, ANIM_DAMPING.headLook, dt);
+
+    // ---- Leg walk cycle (procedural swing on top of the blended amplitude) ----
+    phase.current += dt * (5 + speed * 5);
+    const swing = Math.sin(phase.current) * 0.55 * c.legAmp;
+    const kneeCycle = Math.max(0, Math.sin(phase.current + Math.PI / 2)) * 0.5 * c.legAmp;
+
+    if (leftHip.current) leftHip.current.rotation.x = swing;
+    if (rightHip.current) rightHip.current.rotation.x = -swing;
+    if (leftKnee.current) leftKnee.current.rotation.x = c.kneeL + kneeCycle;
+    if (rightKnee.current) rightKnee.current.rotation.x = c.kneeR + Math.max(0, -Math.sin(phase.current + Math.PI / 2)) * 0.5 * c.legAmp;
+
+    if (leftShoulder.current) {
+      leftShoulder.current.rotation.x = c.shoulderXL;
+      leftShoulder.current.rotation.z = c.shoulderZL;
+    }
+    if (rightShoulder.current) {
+      rightShoulder.current.rotation.x = c.shoulderXR;
+      rightShoulder.current.rotation.z = -c.shoulderZR;
+    }
+    if (leftElbow.current) leftElbow.current.rotation.x = c.elbowXL;
+    if (rightElbow.current) rightElbow.current.rotation.x = c.elbowXR;
+    if (spine.current) spine.current.rotation.x = c.spineLean;
+    if (head.current) head.current.rotation.x = c.headPitch;
+    if (hips.current) {
+      hips.current.position.y = 0.5 - c.hipDrop - c.collapse * 0.42;
+      hips.current.rotation.x = c.collapse * -1.35;
+      hips.current.rotation.z = c.collapse * 0.25;
+    }
+  });
+
+  const jacketColor = skin?.jacketColor ?? color;
+  const pantsColor = skin?.pantsColor ?? "#2a2f3a";
+  const shoeColor = skin?.shoeColor ?? "#15181f";
+  const skinTone = skin?.skinTone ?? DEFAULT_SKIN_TONE;
+  const hairColor = skin?.hairColor ?? DEFAULT_HAIR;
+  const accentColor = skin?.accentColor ?? accent;
+  const hasHair = skin?.hasHair ?? true;
+
+  const materials = useMemo(
+    () => ({
+      jacket: <meshStandardMaterial color={jacketColor} roughness={0.55} metalness={0.2} />,
+      pants: <meshStandardMaterial color={pantsColor} roughness={0.7} />,
+      shoe: <meshStandardMaterial color={shoeColor} roughness={0.5} metalness={0.15} />,
+      skinMat: <meshStandardMaterial color={skinTone} roughness={0.75} />,
+      hair: <meshStandardMaterial color={hairColor} roughness={0.6} />,
+      accentMat: <meshStandardMaterial color={accentColor} emissive={accentColor} emissiveIntensity={1.1} />,
+    }),
+    [jacketColor, pantsColor, shoeColor, skinTone, hairColor, accentColor]
+  );
 
   return (
-    <group>
-      {/* Torso */}
-      <mesh position={[0, 0.55, 0]} castShadow={shadows}>
-        <capsuleGeometry args={[MOVEMENT.capsuleRadius, MOVEMENT.capsuleHalfHeight * 1.3, 4, 8]} />
-        <meshStandardMaterial color={color} roughness={0.55} metalness={0.2} />
+    <group ref={hips} position={[0, 0.5, 0]}>
+      {/* Pelvis */}
+      <mesh castShadow={shadows}>
+        <boxGeometry args={[0.34, 0.16, 0.24]} />
+        {materials.pants}
       </mesh>
-      {/* Chest accent stripe */}
-      <mesh position={[0, 0.65, 0.32]}>
-        <boxGeometry args={[0.32, 0.14, 0.04]} />
-        <meshStandardMaterial color={accent} emissive={accent} emissiveIntensity={0.9} />
-      </mesh>
-      {/* Head */}
-      <mesh position={[0, bodyHeight - 0.28, 0]} castShadow={shadows}>
-        <boxGeometry args={[0.36, 0.36, 0.38]} />
-        <meshStandardMaterial color="#e7ddce" roughness={0.7} />
-      </mesh>
-      {/* Visor */}
-      <mesh position={[0, bodyHeight - 0.28, 0.2]}>
-        <boxGeometry args={[0.3, 0.09, 0.04]} />
-        <meshStandardMaterial color={accent} emissive={accent} emissiveIntensity={1.4} />
-      </mesh>
-      {/* Arms */}
-      <mesh ref={leftArm} position={[-0.42, 0.62, 0]} castShadow={shadows}>
-        <capsuleGeometry args={[0.11, 0.5, 4, 6]} />
-        <meshStandardMaterial color={color} roughness={0.6} />
-      </mesh>
-      <mesh ref={rightArm} position={[0.42, 0.62, 0]} castShadow={shadows}>
-        <capsuleGeometry args={[0.11, 0.5, 4, 6]} />
-        <meshStandardMaterial color={color} roughness={0.6} />
-      </mesh>
-      {/* Legs */}
-      <mesh ref={leftLeg} position={[-0.18, 0.02, 0]} castShadow={shadows}>
-        <capsuleGeometry args={[0.13, 0.55, 4, 6]} />
-        <meshStandardMaterial color="#2a2f3a" roughness={0.7} />
-      </mesh>
-      <mesh ref={rightLeg} position={[0.18, 0.02, 0]} castShadow={shadows}>
-        <capsuleGeometry args={[0.13, 0.55, 4, 6]} />
-        <meshStandardMaterial color="#2a2f3a" roughness={0.7} />
-      </mesh>
+
+      {/* Left leg: hip -> knee -> shoe */}
+      <group ref={leftHip} position={[-0.13, -0.02, 0]}>
+        <mesh ref={leftLeg} position={[0, -0.19, 0]} castShadow={shadows}>
+          <capsuleGeometry args={[0.1, 0.3, 4, 6]} />
+          {materials.pants}
+        </mesh>
+        <group ref={leftKnee} position={[0, -0.38, 0]}>
+          <mesh position={[0, -0.16, 0.01]} castShadow={shadows}>
+            <capsuleGeometry args={[0.085, 0.26, 4, 6]} />
+            {materials.pants}
+          </mesh>
+          <mesh position={[0, -0.32, 0.05]} castShadow={shadows}>
+            <boxGeometry args={[0.14, 0.09, 0.24]} />
+            {materials.shoe}
+          </mesh>
+        </group>
+      </group>
+
+      {/* Right leg */}
+      <group ref={rightHip} position={[0.13, -0.02, 0]}>
+        <mesh ref={rightLeg} position={[0, -0.19, 0]} castShadow={shadows}>
+          <capsuleGeometry args={[0.1, 0.3, 4, 6]} />
+          {materials.pants}
+        </mesh>
+        <group ref={rightKnee} position={[0, -0.38, 0]}>
+          <mesh position={[0, -0.16, 0.01]} castShadow={shadows}>
+            <capsuleGeometry args={[0.085, 0.26, 4, 6]} />
+            {materials.pants}
+          </mesh>
+          <mesh position={[0, -0.32, 0.05]} castShadow={shadows}>
+            <boxGeometry args={[0.14, 0.09, 0.24]} />
+            {materials.shoe}
+          </mesh>
+        </group>
+      </group>
+
+      {/* Spine -> chest, head, arms */}
+      <group ref={spine} position={[0, 0.08, 0]}>
+        <mesh position={[0, 0.28, 0]} castShadow={shadows}>
+          <capsuleGeometry args={[0.19, 0.32, 4, 8]} />
+          {materials.jacket}
+        </mesh>
+        {/* Chest accent stripe */}
+        <mesh position={[0, 0.32, 0.2]}>
+          <boxGeometry args={[0.28, 0.12, 0.03]} />
+          {materials.accentMat}
+        </mesh>
+
+        {/* Head */}
+        <group ref={head} position={[0, 0.58, 0]}>
+          <mesh castShadow={shadows}>
+            <boxGeometry args={[0.32, 0.32, 0.34]} />
+            {materials.skinMat}
+          </mesh>
+          {/* Visor / face plate */}
+          <mesh position={[0, 0, 0.18]}>
+            <boxGeometry args={[0.26, 0.08, 0.03]} />
+            {materials.accentMat}
+          </mesh>
+          {hasHair && (
+            <mesh position={[0, 0.13, -0.03]} castShadow={shadows}>
+              <boxGeometry args={[0.33, 0.14, 0.32]} />
+              {materials.hair}
+            </mesh>
+          )}
+        </group>
+
+        {/* Left arm: shoulder -> elbow -> hand */}
+        <group ref={leftShoulder} position={[-0.24, 0.42, 0]}>
+          <mesh position={[0, -0.15, 0]} castShadow={shadows}>
+            <capsuleGeometry args={[0.075, 0.22, 4, 6]} />
+            {materials.jacket}
+          </mesh>
+          <group ref={leftElbow} position={[0, -0.3, 0]}>
+            <mesh position={[0, -0.13, 0]} castShadow={shadows}>
+              <capsuleGeometry args={[0.065, 0.2, 4, 6]} />
+              {materials.jacket}
+            </mesh>
+            <mesh position={[0, -0.26, 0]} castShadow={shadows}>
+              <sphereGeometry args={[0.07, 8, 8]} />
+              {materials.skinMat}
+            </mesh>
+          </group>
+        </group>
+
+        {/* Right arm (weapon-holding side) */}
+        <group ref={rightShoulder} position={[0.24, 0.42, 0]}>
+          <mesh position={[0, -0.15, 0]} castShadow={shadows}>
+            <capsuleGeometry args={[0.075, 0.22, 4, 6]} />
+            {materials.jacket}
+          </mesh>
+          <group ref={rightElbow} position={[0, -0.3, 0]}>
+            <mesh position={[0, -0.13, 0]} castShadow={shadows}>
+              <capsuleGeometry args={[0.065, 0.2, 4, 6]} />
+              {materials.jacket}
+            </mesh>
+            <mesh position={[0, -0.26, 0]} castShadow={shadows}>
+              <sphereGeometry args={[0.07, 8, 8]} />
+              {materials.skinMat}
+            </mesh>
+          </group>
+        </group>
+      </group>
     </group>
   );
 }

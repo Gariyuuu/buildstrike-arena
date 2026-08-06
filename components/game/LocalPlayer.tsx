@@ -28,6 +28,7 @@ import { useBuildsStore } from "@/stores/buildsStore";
 import { useSettingsStore } from "@/stores/settingsStore";
 import type { GameAdapter, Vec3 } from "@/game/networking/adapter";
 import { CharacterModel } from "@/components/game/CharacterModel";
+import type { ArmPoseId } from "@/game/animation/pose";
 import { WeaponView } from "@/components/game/WeaponView";
 import { BuildGhost, type BuildGhostState } from "@/components/game/BuildGhost";
 
@@ -57,6 +58,8 @@ export function LocalPlayer({
   const hitboxMesh = useRef<THREE.Mesh>(null);
   const movingRef = useRef(0);
   const fireFlashRef = useRef(0);
+  const armPoseRef = useRef<ArmPoseId>("none");
+  const hitReactRef = useRef(0);
 
   const yaw = useRef(spawn.yaw);
   const pitch = useRef(0);
@@ -81,6 +84,7 @@ export function LocalPlayer({
 
   const weaponForView = usePlayerStore((s) => s.local.weapon);
   const isReloading = usePlayerStore((s) => s.local.isReloading);
+  const isDead = usePlayerStore((s) => s.local.isDead);
   const resetSignal = useMatchStore((s) => s.resetSignal);
 
   useEffect(() => {
@@ -178,6 +182,16 @@ export function LocalPlayer({
     isAiming.current = mouse.current.right;
 
     const local = usePlayerStore.getState().local;
+    hitReactRef.current = usePlayerStore.getState().damageFlash;
+    armPoseRef.current = local.isHealing
+      ? local.selected === "shieldPotion"
+        ? "shield"
+        : "heal"
+      : local.isBuildMode
+        ? "build"
+        : local.isReloading
+          ? "reload"
+          : local.weapon;
 
     if (!paused && !local.isDead) {
       if (combatActive) {
@@ -478,7 +492,17 @@ export function LocalPlayer({
           <capsuleGeometry args={[MOVEMENT.capsuleRadius + 0.03, MOVEMENT.capsuleHalfHeight * 2, 4, 8]} />
           <meshBasicMaterial visible={false} />
         </mesh>
-        <CharacterModel color={bodyColor} accent={accent} movingRef={movingRef} />
+        <CharacterModel
+          color={bodyColor}
+          accent={accent}
+          movingRef={movingRef}
+          groundedRef={grounded}
+          velocityYRef={velocityY}
+          armPoseRef={armPoseRef}
+          fireReactRef={fireFlashRef}
+          hitReactRef={hitReactRef}
+          eliminated={isDead}
+        />
         <WeaponView
           weapon={weaponForView}
           fireFlashRef={fireFlashRef}

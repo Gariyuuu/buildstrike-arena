@@ -12,6 +12,8 @@ import { CharacterModel } from "@/components/game/CharacterModel";
 import { WeaponView } from "@/components/game/WeaponView";
 import type { OpponentStateMsg, OpponentFiredMsg } from "@/game/networking/types";
 import type { WeaponId } from "@/game/config/weapons";
+import type { ArmPoseId } from "@/game/animation/pose";
+import { usePlayerStore } from "@/stores/playerStore";
 
 const REMOTE_ID = "remote-player";
 
@@ -35,6 +37,11 @@ export function RemotePlayer({
   const registry = useDamageableRegistry();
   const noSwitchFlash = useRef(0);
   const [currentWeapon, setCurrentWeapon] = useState<WeaponId>("rifle");
+  const armPoseRef = useRef<ArmPoseId>("rifle");
+  const hitReactRef = useRef(0);
+  const lastOpponentHealth = useRef(100);
+  const opponentHealth = usePlayerStore((s) => s.opponent.health);
+  const isDead = opponentHealth <= 0;
 
   useEffect(() => {
     if (!hitboxMesh.current) return;
@@ -67,8 +74,12 @@ export function RemotePlayer({
       const targetQuatY = net.rotationY;
       group.current.rotation.y = THREE.MathUtils.damp(group.current.rotation.y, targetQuatY, MOVEMENT.turnSmoothing, dt);
       if (net.weapon !== currentWeapon) setCurrentWeapon(net.weapon);
+      armPoseRef.current = net.isBuildMode ? "build" : net.weapon;
       positionTracker.opponent.set(lastPos.current.x, lastPos.current.y, lastPos.current.z);
     }
+
+    if (opponentHealth < lastOpponentHealth.current) hitReactRef.current = performance.now();
+    lastOpponentHealth.current = opponentHealth;
 
     const fireEvent = fireEventRef.current;
     if (fireEvent && fireEvent !== lastFireSeen.current) {
@@ -92,7 +103,15 @@ export function RemotePlayer({
           <capsuleGeometry args={[MOVEMENT.capsuleRadius + 0.03, MOVEMENT.capsuleHalfHeight * 2, 4, 8]} />
           <meshBasicMaterial visible={false} />
         </mesh>
-        <CharacterModel color="#c96b3a" accent="#ff8a33" movingRef={movingRef} />
+        <CharacterModel
+          color="#c96b3a"
+          accent="#ff8a33"
+          movingRef={movingRef}
+          armPoseRef={armPoseRef}
+          fireReactRef={fireFlashRef}
+          hitReactRef={hitReactRef}
+          eliminated={isDead}
+        />
         <WeaponView weapon={currentWeapon} fireFlashRef={fireFlashRef} reloading={false} switchFlashUntilRef={noSwitchFlash} accent="#ff8a33" />
       </group>
     </group>
