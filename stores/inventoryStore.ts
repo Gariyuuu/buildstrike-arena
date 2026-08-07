@@ -2,16 +2,19 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { DEFAULT_SKIN_ID, type CosmeticCategory } from "@/game/config/cosmetics";
+import { DEFAULT_SKIN_ID, DEFAULT_WRAP_ID, type CosmeticCategory } from "@/game/config/cosmetics";
+
+const DEFAULT_BANNER_ID = "banner-default";
+const DEFAULT_ICON_ID = "icon-default";
 
 export type EquippedSlots = {
   skin: string;
   backAccessory: string | null;
   pickaxe: string | null;
-  weaponWrap: string | null;
+  weaponWrap: string;
   emote: (string | null)[]; // up to 4 equipped emote slots
-  banner: string | null;
-  icon: string | null;
+  banner: string;
+  icon: string;
 };
 
 interface InventoryState {
@@ -23,20 +26,22 @@ interface InventoryState {
   reset: () => void;
 }
 
+const STARTER_OWNED = [DEFAULT_SKIN_ID, DEFAULT_WRAP_ID, DEFAULT_BANNER_ID, DEFAULT_ICON_ID];
+
 const freshEquipped = (): EquippedSlots => ({
   skin: DEFAULT_SKIN_ID,
   backAccessory: null,
   pickaxe: null,
-  weaponWrap: null,
+  weaponWrap: DEFAULT_WRAP_ID,
   emote: [null, null, null, null],
-  banner: null,
-  icon: null,
+  banner: DEFAULT_BANNER_ID,
+  icon: DEFAULT_ICON_ID,
 });
 
 export const useInventoryStore = create<InventoryState>()(
   persist(
     (set, get) => ({
-      owned: [DEFAULT_SKIN_ID],
+      owned: [...STARTER_OWNED],
       equipped: freshEquipped(),
       isOwned: (id) => get().owned.includes(id),
       grant: (id) => set((s) => (s.owned.includes(id) ? s : { owned: [...s.owned, id] })),
@@ -49,9 +54,12 @@ export const useInventoryStore = create<InventoryState>()(
             return { equipped: { ...s.equipped, emote } };
           }
           if (category === "skin") return { equipped: { ...s.equipped, skin: id ?? DEFAULT_SKIN_ID } };
+          if (category === "weaponWrap") return { equipped: { ...s.equipped, weaponWrap: id ?? DEFAULT_WRAP_ID } };
+          if (category === "banner") return { equipped: { ...s.equipped, banner: id ?? DEFAULT_BANNER_ID } };
+          if (category === "icon") return { equipped: { ...s.equipped, icon: id ?? DEFAULT_ICON_ID } };
           return { equipped: { ...s.equipped, [category]: id } };
         }),
-      reset: () => set({ owned: [DEFAULT_SKIN_ID], equipped: freshEquipped() }),
+      reset: () => set({ owned: [...STARTER_OWNED], equipped: freshEquipped() }),
     }),
     { name: "buildstrike-inventory" }
   )

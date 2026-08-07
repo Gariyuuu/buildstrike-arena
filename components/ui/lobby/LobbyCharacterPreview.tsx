@@ -5,11 +5,13 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { CharacterModel } from "@/components/game/CharacterModel";
 import { useInventoryStore } from "@/stores/inventoryStore";
-import { SKINS, DEFAULT_SKIN_ID } from "@/game/config/cosmetics";
+import { SKINS, BACK_ACCESSORIES, DEFAULT_SKIN_ID } from "@/game/config/cosmetics";
 
 function IdleCharacter() {
   const equippedSkinId = useInventoryStore((s) => s.equipped.skin);
+  const equippedBackId = useInventoryStore((s) => s.equipped.backAccessory);
   const skinDef = SKINS[equippedSkinId] ?? SKINS[DEFAULT_SKIN_ID];
+  const backDef = equippedBackId ? BACK_ACCESSORIES[equippedBackId] : null;
   const movingRef = useRef(0);
   const group = useRef<THREE.Group>(null);
 
@@ -19,7 +21,14 @@ function IdleCharacter() {
 
   return (
     <group ref={group}>
-      <CharacterModel color={skinDef.skin.jacketColor ?? "#3aa0c9"} accent={skinDef.skin.accentColor ?? "#33e6ff"} movingRef={movingRef} skin={skinDef.skin} shadows={false} />
+      <CharacterModel
+        color={skinDef.skin.jacketColor ?? "#3aa0c9"}
+        accent={skinDef.skin.accentColor ?? "#33e6ff"}
+        movingRef={movingRef}
+        skin={skinDef.skin}
+        backAccessory={backDef}
+        shadows={false}
+      />
     </group>
   );
 }

@@ -11,6 +11,7 @@ import {
   type ArmPoseId,
   type LocomotionId,
 } from "@/game/animation/pose";
+import type { BackAccessoryDefinition } from "@/game/config/cosmetics";
 
 /** Full cosmetic material/color override — every field optional, falls back to the base color/accent. */
 export interface CharacterSkin {
@@ -47,6 +48,7 @@ export function CharacterModel({
   movingRef,
   shadows = true,
   skin,
+  backAccessory,
   groundedRef,
   velocityYRef,
   armPoseRef,
@@ -60,6 +62,7 @@ export function CharacterModel({
   movingRef: React.RefObject<number>; // 0..1 movement speed fraction, read per-frame
   shadows?: boolean;
   skin?: CharacterSkin;
+  backAccessory?: BackAccessoryDefinition | null;
   /** Per-frame refs driving the animation state machine — all optional, default to idle/grounded/no-weapon. */
   groundedRef?: React.RefObject<boolean>;
   velocityYRef?: React.RefObject<number>;
@@ -264,6 +267,8 @@ export function CharacterModel({
           {materials.accentMat}
         </mesh>
 
+        {backAccessory && <BackAccessoryMesh def={backAccessory} shadows={shadows} />}
+
         {/* Head */}
         <group ref={head} position={[0, 0.58, 0]}>
           <mesh castShadow={shadows}>
@@ -321,4 +326,61 @@ export function CharacterModel({
       </group>
     </group>
   );
+}
+
+/** Renders one of the back-accessory cosmetic shapes, positioned on the character's back (negative Z, opposite the chest stripe). */
+function BackAccessoryMesh({ def, shadows }: { def: BackAccessoryDefinition; shadows: boolean }) {
+  const mat = <meshStandardMaterial color={def.color} roughness={0.5} metalness={0.3} />;
+  switch (def.shape) {
+    case "cape":
+      return (
+        <mesh position={[0, 0.1, -0.16]} rotation={[0.15, 0, 0]} castShadow={shadows}>
+          <boxGeometry args={[0.32, 0.55, 0.02]} />
+          {mat}
+        </mesh>
+      );
+    case "pack":
+      return (
+        <mesh position={[0, 0.28, -0.18]} castShadow={shadows}>
+          <boxGeometry args={[0.24, 0.28, 0.14]} />
+          {mat}
+        </mesh>
+      );
+    case "fin":
+      return (
+        <mesh position={[0, 0.4, -0.14]} rotation={[0, 0, 0]} castShadow={shadows}>
+          <coneGeometry args={[0.1, 0.3, 4]} />
+          {mat}
+        </mesh>
+      );
+    case "wings":
+      return (
+        <group position={[0, 0.32, -0.16]}>
+          <mesh position={[-0.2, 0, 0]} rotation={[0, 0, 0.3]} castShadow={shadows}>
+            <boxGeometry args={[0.3, 0.06, 0.18]} />
+            {mat}
+          </mesh>
+          <mesh position={[0.2, 0, 0]} rotation={[0, 0, -0.3]} castShadow={shadows}>
+            <boxGeometry args={[0.3, 0.06, 0.18]} />
+            {mat}
+          </mesh>
+        </group>
+      );
+    case "tank":
+      return (
+        <mesh position={[0, 0.3, -0.18]} castShadow={shadows}>
+          <cylinderGeometry args={[0.09, 0.09, 0.4, 10]} />
+          {mat}
+        </mesh>
+      );
+    case "shield":
+      return (
+        <mesh position={[0, 0.24, -0.17]} castShadow={shadows}>
+          <boxGeometry args={[0.26, 0.34, 0.05]} />
+          {mat}
+        </mesh>
+      );
+    default:
+      return null;
+  }
 }

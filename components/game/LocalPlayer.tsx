@@ -28,6 +28,8 @@ import { useBuildsStore } from "@/stores/buildsStore";
 import { useSettingsStore } from "@/stores/settingsStore";
 import { useProfileStore } from "@/stores/profileStore";
 import { useLoadoutStore } from "@/stores/loadoutStore";
+import { useInventoryStore } from "@/stores/inventoryStore";
+import { SKINS, WEAPON_WRAPS, BACK_ACCESSORIES, DEFAULT_SKIN_ID, DEFAULT_WRAP_ID } from "@/game/config/cosmetics";
 import type { GameAdapter, Vec3 } from "@/game/networking/adapter";
 import { CharacterModel } from "@/components/game/CharacterModel";
 import { weaponArmPose, type ArmPoseId } from "@/game/animation/pose";
@@ -506,6 +508,12 @@ export function LocalPlayer({
 
   const bodyColor = "#3aa0c9";
   const accent = "#33e6ff";
+  const equippedSkinId = useInventoryStore((s) => s.equipped.skin);
+  const equippedWrapId = useInventoryStore((s) => s.equipped.weaponWrap);
+  const equippedBackId = useInventoryStore((s) => s.equipped.backAccessory);
+  const skinDef = SKINS[equippedSkinId ?? DEFAULT_SKIN_ID] ?? SKINS[DEFAULT_SKIN_ID];
+  const wrapDef = WEAPON_WRAPS[equippedWrapId ?? DEFAULT_WRAP_ID] ?? WEAPON_WRAPS[DEFAULT_WRAP_ID];
+  const backDef = equippedBackId ? BACK_ACCESSORIES[equippedBackId] : null;
 
   return (
     <group>
@@ -527,6 +535,8 @@ export function LocalPlayer({
           fireReactRef={fireFlashRef}
           hitReactRef={hitReactRef}
           eliminated={isDead}
+          skin={skinDef.skin}
+          backAccessory={backDef}
         />
         <WeaponView
           weapon={weaponForView}
@@ -534,6 +544,7 @@ export function LocalPlayer({
           reloading={isReloading}
           switchFlashUntilRef={switchFlashUntil}
           accent={accent}
+          wrapColors={wrapDef}
         />
       </group>
       <BuildGhost stateRef={ghost} />

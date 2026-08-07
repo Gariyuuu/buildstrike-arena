@@ -2,6 +2,9 @@
 
 import { useState } from "react";
 import { useProfileStore } from "@/stores/profileStore";
+import { useInventoryStore } from "@/stores/inventoryStore";
+import { BANNERS, ICONS } from "@/game/config/cosmetics";
+import { WEAPONS, type WeaponId } from "@/game/config/weapons";
 import { soundManager } from "@/game/audio/soundManager";
 
 function StatCard({ label, value }: { label: string; value: string | number }) {
@@ -20,14 +23,23 @@ export function ProfileTab() {
   const coins = useProfileStore((s) => s.coins);
   const stats = useProfileStore((s) => s.stats);
   const setDisplayName = useProfileStore((s) => s.setDisplayName);
+  const bannerId = useInventoryStore((s) => s.equipped.banner);
+  const iconId = useInventoryStore((s) => s.equipped.icon);
   const [name, setName] = useState(displayName);
 
   const winRate = stats.matchesPlayed > 0 ? Math.round((stats.wins / stats.matchesPlayed) * 100) : 0;
-  const favoriteWeapon = Object.entries(stats.weaponDamage).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "—";
+  const favoriteWeaponId = Object.entries(stats.weaponDamage).sort((a, b) => b[1] - a[1])[0]?.[0] as WeaponId | undefined;
+  const favoriteWeapon = favoriteWeaponId ? WEAPONS[favoriteWeaponId].name : "—";
+  const banner = BANNERS[bannerId];
+  const icon = ICONS[iconId];
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="glass-panel flex flex-wrap items-center gap-4 p-5">
+      <div
+        className="glass-panel flex flex-wrap items-center gap-4 p-5"
+        style={banner ? { background: `linear-gradient(120deg, ${banner.gradient[0]}33, ${banner.gradient[1]}33)` } : undefined}
+      >
+        {icon && <span className="text-2xl">{icon.glyph}</span>}
         <input
           value={name}
           maxLength={16}

@@ -27,12 +27,15 @@ export function WeaponView({
   reloading,
   switchFlashUntilRef,
   accent,
+  wrapColors,
 }: {
   weapon: WeaponId;
   fireFlashRef: React.RefObject<number>; // timestamp of last shot, read per-frame
   reloading: boolean;
   switchFlashUntilRef: React.RefObject<number>; // timestamp until which the switch animation plays
   accent: string;
+  /** Optional weapon-wrap cosmetic override — purely visual, never changes stats. */
+  wrapColors?: { bodyColor: string; barrelColor: string };
 }) {
   const flashMesh = useRef<THREE.Mesh>(null);
   const flashLight = useRef<THREE.PointLight>(null);
@@ -59,18 +62,20 @@ export function WeaponView({
   });
 
   const preset = VISUAL_PRESETS[WEAPONS[weapon].visual];
+  const bodyColor = wrapColors?.bodyColor ?? "#1b1f27";
+  const barrelColor = wrapColors?.barrelColor ?? "#0e1116";
 
   return (
     <group ref={group} position={[0.32, 0.55, 0.28]}>
       {/* Body */}
       <mesh castShadow>
         <boxGeometry args={preset.body} />
-        <meshStandardMaterial color="#1b1f27" roughness={0.4} metalness={0.6} />
+        <meshStandardMaterial color={bodyColor} roughness={0.4} metalness={0.6} />
       </mesh>
       {/* Barrel */}
       <mesh position={[0, 0.01, preset.barrelZ]} rotation={[Math.PI / 2, 0, 0]}>
         <cylinderGeometry args={[preset.barrelRadius, preset.barrelRadius, preset.barrelLen, 8]} />
-        <meshStandardMaterial color="#0e1116" roughness={0.3} metalness={0.8} />
+        <meshStandardMaterial color={barrelColor} roughness={0.3} metalness={0.8} />
       </mesh>
       {/* Scope (marksman only) */}
       {preset.scope && (
