@@ -25,7 +25,11 @@ export interface CharacterSkin {
   hasHair?: boolean;
 }
 
-const DEFAULT_SKIN_TONE = "#e7ddce";
+// A near-white cream reads as grey under this game's blue-tinted ambient
+// light (see Arena.tsx/LobbyCharacterPreview.tsx's #8fb8ff ambient) — too
+// little inherent warmth/saturation to survive the color cast. A proper
+// mid-tone tan stays visibly warm/skin-colored under the same lighting.
+const DEFAULT_SKIN_TONE = "#d3a077";
 const DEFAULT_HAIR = "#2a2118";
 
 function damp(current: number, target: number, lambda: number, dt: number) {

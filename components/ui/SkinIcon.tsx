@@ -2,7 +2,7 @@
 
 import type { CharacterSkin } from "@/components/game/CharacterModel";
 
-const DEFAULT_SKIN_TONE = "#e7ddce";
+const DEFAULT_SKIN_TONE = "#d3a077";
 const DEFAULT_HAIR = "#2a2118";
 
 /** Small flat front-facing character glyph built from the same color fields
