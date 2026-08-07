@@ -13,7 +13,8 @@ export type KeybindAction =
   | "melee"
   | "sprint"
   | "jump"
-  | "emoteWheel";
+  | "emoteWheel"
+  | "interact";
 
 export const KEYBIND_LABELS: Record<KeybindAction, string> = {
   buildWall: "Build Wall",
@@ -26,6 +27,7 @@ export const KEYBIND_LABELS: Record<KeybindAction, string> = {
   sprint: "Sprint",
   jump: "Jump",
   emoteWheel: "Emote Wheel",
+  interact: "Interact (open chests, pick up loot)",
 };
 
 // Values here MUST match hooks/useKeyboard.ts's normalizeKey() output format
@@ -43,6 +45,7 @@ export const DEFAULT_KEYBINDS: Record<KeybindAction, string> = {
   sprint: "shift",
   jump: " ",
   emoteWheel: "b",
+  interact: "e",
 };
 
 export function formatKeyLabel(key: string): string {

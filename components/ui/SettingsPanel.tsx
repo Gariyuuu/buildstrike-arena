@@ -92,6 +92,7 @@ const KEYBIND_ACTIONS: KeybindAction[] = [
   "sprint",
   "jump",
   "emoteWheel",
+  "interact",
 ];
 
 export function SettingsPanel({ onBack }: { onBack?: () => void }) {

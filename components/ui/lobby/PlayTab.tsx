@@ -9,6 +9,8 @@ import { createRoomCode } from "@/game/networking/client";
 import type { BotDifficulty } from "@/game/config/bots";
 import { soundManager } from "@/game/audio/soundManager";
 import { LoadoutPicker } from "@/components/ui/lobby/LoadoutPicker";
+import { useBRStore } from "@/stores/brStore";
+import { SQUAD_SIZE_LABEL, type SquadSize } from "@/game/config/battleRoyale";
 
 const DIFFICULTIES: { id: BotDifficulty; label: string; desc: string }[] = [
   { id: "easy", label: "Easy", desc: "Slower reactions, forgiving aim" },
@@ -26,8 +28,9 @@ export function PlayTab() {
   const setSettings = useSettingsStore((s) => s.set);
   const displayName = useProfileStore((s) => s.displayName);
 
-  const [tab, setTab] = useState<"bot" | "online" | "training">("bot");
+  const [tab, setTab] = useState<"bot" | "online" | "training" | "br">("bot");
   const [joinCode, setJoinCode] = useState("");
+  const [squadSize, setSquadSize] = useState<SquadSize>(1);
 
   function goPlay(mode: "bot" | "online" | "training") {
     soundManager.resume();
@@ -59,16 +62,24 @@ export function PlayTab() {
     goPlay("online");
   }
 
+  function deployBattleRoyale() {
+    soundManager.resume();
+    soundManager.play("uiClick");
+    useBRStore.getState().deploy(squadSize);
+    setMode("battleRoyale");
+    setScreen("playing");
+  }
+
   return (
     <div className="glass-panel w-full max-w-md p-6">
       <div className="mb-5 flex rounded-xl bg-black/30 p-1 text-sm font-semibold">
-        {(["bot", "online", "training"] as const).map((t) => (
+        {(["bot", "online", "br", "training"] as const).map((t) => (
           <button
             key={t}
             className={`flex-1 rounded-lg py-2 transition ${tab === t ? "bg-bs-cyan text-[#04141a]" : "text-white/70 hover:text-white"}`}
             onClick={() => setTab(t)}
           >
-            {t === "bot" ? "1v1 Bot" : t === "online" ? "Private 1v1" : "Training"}
+            {t === "bot" ? "1v1 Bot" : t === "online" ? "Private 1v1" : t === "br" ? "Battle Royale" : "Training"}
           </button>
         ))}
       </div>
@@ -124,6 +135,34 @@ export function PlayTab() {
               Join
             </button>
           </div>
+        </div>
+      )}
+
+      {tab === "br" && (
+        <div className="flex flex-col gap-4">
+          <p className="text-sm text-white/60">
+            Drop into &quot;Tilted Vibes&quot; with up to 20 players — any seats you don&apos;t fill with friends get
+            filled with bots. Loot weapons and heals from the ground and chests, and stay inside the shrinking zone.
+          </p>
+          <div>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-white/50">Squad size</p>
+            <div className="grid grid-cols-4 gap-2">
+              {([1, 2, 3, 4] as SquadSize[]).map((size) => (
+                <button
+                  key={size}
+                  onClick={() => setSquadSize(size)}
+                  className={`rounded-lg border px-2 py-2 text-sm font-semibold transition ${
+                    squadSize === size ? "border-bs-cyan bg-bs-cyan/15 text-bs-cyan" : "border-white/10 bg-white/5 text-white/70 hover:border-white/25"
+                  }`}
+                >
+                  {SQUAD_SIZE_LABEL[size]}
+                </button>
+              ))}
+            </div>
+          </div>
+          <button className="btn-primary w-full" onClick={deployBattleRoyale}>
+            Deploy
+          </button>
         </div>
       )}
 

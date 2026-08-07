@@ -14,6 +14,8 @@ import { ConnectionStatus } from "@/components/ui/ConnectionStatus";
 import { EmoteWheel } from "@/components/ui/EmoteWheel";
 import { useKeybindsStore } from "@/stores/keybindsStore";
 import { normalizeKey } from "@/hooks/useKeyboard";
+import { BRHud } from "@/components/ui/BRHud";
+import { BRResults } from "@/components/ui/BRResults";
 
 export function HUD({ domElement }: { domElement: React.RefObject<HTMLDivElement | null> }) {
   const mode = useGameStore((s) => s.mode);
@@ -33,6 +35,7 @@ export function HUD({ domElement }: { domElement: React.RefObject<HTMLDivElement
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
+      if (mode === "battleRoyale") return; // BRHud owns its own Escape/leave handling
       if (e.code === "Escape") {
         if (showLobby || showResults) return;
         if (emoteWheelOpen) {
@@ -54,6 +57,16 @@ export function HUD({ domElement }: { domElement: React.RefObject<HTMLDivElement
     return () => window.removeEventListener("keydown", onKeyDown);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showLobby, showResults, paused, canEmote, emoteWheelOpen]);
+
+  if (mode === "battleRoyale") {
+    return (
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <Crosshair />
+        <BRHud />
+        <BRResults />
+      </div>
+    );
+  }
 
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden">

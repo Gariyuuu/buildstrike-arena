@@ -10,6 +10,7 @@ import { BuildInstance } from "@/components/game/BuildInstance";
 import { BotDuelScene } from "@/components/game/BotDuelScene";
 import { OnlineDuelScene } from "@/components/game/OnlineDuelScene";
 import { TrainingArenaScene } from "@/components/game/TrainingArenaScene";
+import { BattleRoyaleScene } from "@/components/game/BattleRoyaleScene";
 import { DamageableProvider } from "@/game/physics/damageable";
 import { useBuildsStore } from "@/stores/buildsStore";
 import { useGameStore } from "@/stores/gameStore";
@@ -36,7 +37,7 @@ export function GameCanvas() {
         shadows={shadowsEnabled}
         dpr={DPR_BY_QUALITY[graphicsQuality] ?? DPR_BY_QUALITY.medium}
         gl={{ antialias: graphicsQuality !== "low", powerPreference: "high-performance" }}
-        camera={{ fov, near: 0.1, far: 140, position: [0, 2, 10] }}
+        camera={{ fov, near: 0.1, far: 500, position: [0, 2, 10] }}
         onCreated={({ scene }) => {
           scene.background = new THREE.Color("#0a0e17");
         }}
@@ -44,13 +45,19 @@ export function GameCanvas() {
         <Suspense fallback={null}>
           <Physics gravity={[0, -18, 0]} timeStep="vary">
             <DamageableProvider>
-              <Arena shadows={shadowsEnabled} />
-              {builds.map((b) => (
-                <BuildInstance key={b.id} build={b} mode={mode === "online" ? "online" : "bot"} />
-              ))}
-              {mode === "bot" && <BotDuelScene domElement={domRef} />}
-              {mode === "online" && <OnlineDuelScene domElement={domRef} />}
-              {mode === "training" && <TrainingArenaScene domElement={domRef} />}
+              {mode === "battleRoyale" ? (
+                <BattleRoyaleScene domElement={domRef} shadows={shadowsEnabled} />
+              ) : (
+                <>
+                  <Arena shadows={shadowsEnabled} />
+                  {builds.map((b) => (
+                    <BuildInstance key={b.id} build={b} mode={mode === "online" ? "online" : "bot"} />
+                  ))}
+                  {mode === "bot" && <BotDuelScene domElement={domRef} />}
+                  {mode === "online" && <OnlineDuelScene domElement={domRef} />}
+                  {mode === "training" && <TrainingArenaScene domElement={domRef} />}
+                </>
+              )}
             </DamageableProvider>
           </Physics>
           <EffectsLayer quality={graphicsQuality as "low" | "medium" | "high"} />
