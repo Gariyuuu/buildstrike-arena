@@ -324,31 +324,37 @@ export function CharacterModel({
             <sphereGeometry args={[0.145, 16, 14]} />
             {materials.skinMat}
           </mesh>
-          {/* Face: a dark tactical visor frame with two glowing eye slits
-              (accent-colored, so every skin's face reads differently) instead
-              of the old single flat accent bar, which looked like a blank
-              plate rather than a face. Sits just proud of the head sphere's
-              front curve, like a helmet visor. */}
-          <mesh position={[0, 0.01, 0.135]}>
-            <boxGeometry args={[0.19, 0.08, 0.02]} />
+          {/* Face: a narrow goggle-style visor over just the eyes, not a
+              full-width plate — the old version was 0.19 wide against a
+              ~0.276-wide head (69% of it), so it plus the black hair cap
+              left almost no skin tone visible anywhere on the head, reading
+              as "no texture, just black and white". Narrowing it to a slit
+              that frames the eyes leaves the forehead, temples, cheeks, and
+              chin clearly showing the actual skin-tone material. */}
+          <mesh position={[0, 0.015, 0.14]}>
+            <boxGeometry args={[0.13, 0.045, 0.018]} />
             {materials.visorFrame}
           </mesh>
-          <mesh position={[-0.055, 0.012, 0.148]}>
-            <boxGeometry args={[0.055, 0.032, 0.012]} />
+          <mesh position={[-0.038, 0.017, 0.15]}>
+            <boxGeometry args={[0.045, 0.024, 0.01]} />
             {materials.eyeGlow}
           </mesh>
-          <mesh position={[0.055, 0.012, 0.148]}>
-            <boxGeometry args={[0.055, 0.032, 0.012]} />
+          <mesh position={[0.038, 0.017, 0.15]}>
+            <boxGeometry args={[0.045, 0.024, 0.01]} />
             {materials.eyeGlow}
           </mesh>
-          {/* Jaw/chin shadow line for a touch more facial structure below the visor. */}
-          <mesh position={[0, -0.075, 0.125]}>
-            <boxGeometry args={[0.12, 0.016, 0.018]} />
-            {materials.visorFrame}
-          </mesh>
+          {/* Hair cap: a small sphere whose own north pole (position.y + radius)
+              must stay near the head's actual top (~0.15) — the previous two
+              attempts centered the cap too high/too large so its pole ballooned
+              out to ~0.29, far above the head, making the "cap" bigger than the
+              head itself and swallowing it down past eye level. Only a sliver
+              of skin tone ever showed, reading as "no texture, just black and
+              white" (black hair dome, white visor, no visible face). This one
+              tops out at 0.17 (a slight natural poof over the 0.152 head top)
+              and its bottom edge sits at 0.05, well above the visor at 0.01. */}
           {hasHair && (
-            <mesh position={[0, 0.06, -0.01]} rotation={[0.1, 0, 0]} castShadow={shadows} scale={[1.02, 1, 1]}>
-              <sphereGeometry args={[0.155, 14, 10, 0, Math.PI * 2, 0, Math.PI * 0.62]} />
+            <mesh position={[0, 0.04, -0.01]} castShadow={shadows}>
+              <sphereGeometry args={[0.13, 14, 10, 0, Math.PI * 2, 0, Math.PI * 0.48]} />
               {materials.hair}
             </mesh>
           )}
