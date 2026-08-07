@@ -364,7 +364,7 @@ export function CharacterModel({
         </group>
 
         {/* Left arm: shoulder -> elbow -> hand */}
-        <group ref={leftShoulder} position={[-0.185, 0.4, 0]}>
+        <group ref={leftShoulder} position={[-0.21, 0.4, 0]}>
           <mesh position={[0, -0.14, 0]} castShadow={shadows}>
             <capsuleGeometry args={[0.058, 0.22, 4, 6]} />
             {materials.jacket}
@@ -382,7 +382,7 @@ export function CharacterModel({
         </group>
 
         {/* Right arm (weapon-holding side) */}
-        <group ref={rightShoulder} position={[0.185, 0.4, 0]}>
+        <group ref={rightShoulder} position={[0.21, 0.4, 0]}>
           <mesh position={[0, -0.14, 0]} castShadow={shadows}>
             <capsuleGeometry args={[0.058, 0.22, 4, 6]} />
             {materials.jacket}
