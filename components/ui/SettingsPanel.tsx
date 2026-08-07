@@ -8,6 +8,8 @@ import { normalizeKey } from "@/hooks/useKeyboard";
 import type { BotDifficulty } from "@/game/config/bots";
 import { soundManager } from "@/game/audio/soundManager";
 import { RedeemCodePanel } from "@/components/ui/RedeemCodePanel";
+import { useThemeStore } from "@/stores/themeStore";
+import { THEMES } from "@/game/config/themes";
 
 function Slider({
   label,
@@ -97,6 +99,8 @@ const KEYBIND_ACTIONS: KeybindAction[] = [
 export function SettingsPanel({ onBack }: { onBack?: () => void }) {
   const setScreen = useGameStore((s) => s.setScreen);
   const s = useSettingsStore();
+  const themeId = useThemeStore((st) => st.themeId);
+  const setTheme = useThemeStore((st) => st.setTheme);
   const back = onBack ?? (() => setScreen("menu"));
 
   function requestFullscreen() {
@@ -108,6 +112,30 @@ export function SettingsPanel({ onBack }: { onBack?: () => void }) {
     <div className="relative flex h-full w-full items-center justify-center overflow-y-auto bg-[radial-gradient(circle_at_50%_20%,#132033,transparent_60%),linear-gradient(180deg,#05070d,#0a0e17)] p-4">
       <div className="glass-panel bs-pop-in relative w-full max-w-xl p-6">
         <h2 className="mb-5 text-2xl font-black text-white">Settings</h2>
+
+        <div className="mb-6">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-white/50">Theme</p>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+            {THEMES.map((t) => (
+              <button
+                key={t.id}
+                onClick={() => {
+                  setTheme(t.id);
+                  soundManager.play("uiClick");
+                }}
+                className={`flex flex-col items-center gap-1.5 rounded-lg border p-2 transition ${
+                  themeId === t.id ? "border-white/60 bg-white/10" : "border-white/10 bg-white/5 hover:border-white/25"
+                }`}
+              >
+                <span className="flex h-6 w-full overflow-hidden rounded-md">
+                  <span className="flex-1" style={{ background: t.cyan }} />
+                  <span className="flex-1" style={{ background: t.orange }} />
+                </span>
+                <span className="text-[11px] font-semibold text-white/70">{t.name}</span>
+              </button>
+            ))}
+          </div>
+        </div>
 
         <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Slider label="Mouse Sensitivity" value={s.mouseSensitivity} min={0.1} max={3} step={0.05} onChange={(v) => s.set({ mouseSensitivity: v })} />

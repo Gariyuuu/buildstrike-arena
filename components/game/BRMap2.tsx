@@ -42,14 +42,22 @@ export function BRMap2({ shadows }: { shadows: boolean }) {
         <meshStandardMaterial color="#1c6b7a" roughness={0.15} metalness={0.4} transparent opacity={0.85} />
       </mesh>
 
-      {/* Canyon ring — a broken circle of rock walls forming a natural arena around the oasis */}
+      {/* Canyon ring — a broken circle of rock walls forming a natural arena
+          around the oasis. A warm glowing seam near the base gives the ring
+          a deliberate, lit-landmark look instead of a plain brown wall. */}
       {layout.canyonWalls.map((w, i) => (
-        <RigidBody key={`wall-${i}`} type="fixed" colliders="cuboid" position={w.position} rotation={[0, w.rotationY, 0]}>
-          <mesh castShadow={shadows} receiveShadow={shadows}>
-            <boxGeometry args={[w.length, w.height, 2.5]} />
-            <meshStandardMaterial color="#8a6238" roughness={0.9} />
+        <group key={`wall-${i}`}>
+          <RigidBody type="fixed" colliders="cuboid" position={w.position} rotation={[0, w.rotationY, 0]}>
+            <mesh castShadow={shadows} receiveShadow={shadows}>
+              <boxGeometry args={[w.length, w.height, 2.5]} />
+              <meshStandardMaterial color="#8a6238" roughness={0.9} />
+            </mesh>
+          </RigidBody>
+          <mesh position={[w.position[0], 1.2, w.position[2]]} rotation={[0, w.rotationY, 0]}>
+            <boxGeometry args={[w.length * 0.92, 0.12, 2.6]} />
+            <meshStandardMaterial color="#ffb870" emissive="#ffb870" emissiveIntensity={0.7} />
           </mesh>
-        </RigidBody>
+        </group>
       ))}
 
       {layout.rocks.map((r, i) => (

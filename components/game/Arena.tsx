@@ -66,26 +66,39 @@ export function Arena({ shadows }: { shadows: boolean }) {
         <meshBasicMaterial color={ACCENT_CYAN} transparent opacity={0.06} />
       </mesh>
 
-      {/* Boundary walls (visible, translucent energy barrier) */}
+      {/* Boundary walls (visible, translucent energy barrier) — a glowing
+          frame (floor-level + top edge trim strips) reads much more like a
+          deliberate "energy barrier" than a flat translucent box on its
+          own, which was the main thing making the arena look plain/"ugly". */}
       {[
-        { pos: [0, wallY, -half] as [number, number, number], size: [ARENA.floorSize, ARENA_BOUNDS.wallHeight, ARENA.boundaryThickness] as [number, number, number] },
-        { pos: [0, wallY, half] as [number, number, number], size: [ARENA.floorSize, ARENA_BOUNDS.wallHeight, ARENA.boundaryThickness] as [number, number, number] },
-        { pos: [-half, wallY, 0] as [number, number, number], size: [ARENA.boundaryThickness, ARENA_BOUNDS.wallHeight, ARENA.floorSize] as [number, number, number] },
-        { pos: [half, wallY, 0] as [number, number, number], size: [ARENA.boundaryThickness, ARENA_BOUNDS.wallHeight, ARENA.floorSize] as [number, number, number] },
+        { pos: [0, wallY, -half] as [number, number, number], size: [ARENA.floorSize, ARENA_BOUNDS.wallHeight, ARENA.boundaryThickness] as [number, number, number], horizontal: true },
+        { pos: [0, wallY, half] as [number, number, number], size: [ARENA.floorSize, ARENA_BOUNDS.wallHeight, ARENA.boundaryThickness] as [number, number, number], horizontal: true },
+        { pos: [-half, wallY, 0] as [number, number, number], size: [ARENA.boundaryThickness, ARENA_BOUNDS.wallHeight, ARENA.floorSize] as [number, number, number], horizontal: false },
+        { pos: [half, wallY, 0] as [number, number, number], size: [ARENA.boundaryThickness, ARENA_BOUNDS.wallHeight, ARENA.floorSize] as [number, number, number], horizontal: false },
       ].map((w, i) => (
-        <RigidBody key={i} type="fixed" colliders="cuboid" position={w.pos}>
-          <mesh>
-            <boxGeometry args={w.size} />
-            <meshStandardMaterial
-              color={WALL_COLOR}
-              transparent
-              opacity={0.28}
-              emissive={ACCENT_CYAN}
-              emissiveIntensity={0.35}
-              side={THREE.DoubleSide}
-            />
+        <group key={i}>
+          <RigidBody type="fixed" colliders="cuboid" position={w.pos}>
+            <mesh>
+              <boxGeometry args={w.size} />
+              <meshStandardMaterial
+                color={WALL_COLOR}
+                transparent
+                opacity={0.24}
+                emissive={ACCENT_CYAN}
+                emissiveIntensity={0.3}
+                side={THREE.DoubleSide}
+              />
+            </mesh>
+          </RigidBody>
+          <mesh position={[w.pos[0], 0.06, w.pos[2]]}>
+            <boxGeometry args={w.horizontal ? [w.size[0], 0.1, 0.08] : [0.08, 0.1, w.size[2]]} />
+            <meshBasicMaterial color={i % 2 === 0 ? ACCENT_CYAN : ACCENT_ORANGE} />
           </mesh>
-        </RigidBody>
+          <mesh position={[w.pos[0], ARENA_BOUNDS.wallHeight - 0.15, w.pos[2]]}>
+            <boxGeometry args={w.horizontal ? [w.size[0], 0.08, 0.08] : [0.08, 0.08, w.size[2]]} />
+            <meshBasicMaterial color={i % 2 === 0 ? ACCENT_CYAN : ACCENT_ORANGE} />
+          </mesh>
+        </group>
       ))}
 
       {/* Center double-ramp starting structure */}
@@ -107,7 +120,9 @@ export function Arena({ shadows }: { shadows: boolean }) {
           <meshStandardMaterial color={RAMP_COLOR} roughness={0.6} metalness={0.3} />
         </mesh>
       </RigidBody>
-      {/* Ramp edge accent strips */}
+      {/* Ramp edge accent strips — center platform plus both ramps, not just
+          the platform alone, so the whole structure reads as one deliberate
+          piece instead of a plain grey box with two stray trim lines. */}
       <mesh position={[-2.02, 3.52, 0]}>
         <boxGeometry args={[0.05, 0.05, 4]} />
         <meshBasicMaterial color={ACCENT_ORANGE} />
@@ -115,6 +130,22 @@ export function Arena({ shadows }: { shadows: boolean }) {
       <mesh position={[2.02, 3.52, 0]}>
         <boxGeometry args={[0.05, 0.05, 4]} />
         <meshBasicMaterial color={ACCENT_ORANGE} />
+      </mesh>
+      <mesh position={[southRamp.position[0] - 2.02, southRamp.position[1] + 0.22, southRamp.position[2]]} rotation={[southRamp.rotationX, 0, 0]}>
+        <boxGeometry args={[0.05, 0.05, southRamp.length]} />
+        <meshBasicMaterial color={ACCENT_CYAN} />
+      </mesh>
+      <mesh position={[southRamp.position[0] + 2.02, southRamp.position[1] + 0.22, southRamp.position[2]]} rotation={[southRamp.rotationX, 0, 0]}>
+        <boxGeometry args={[0.05, 0.05, southRamp.length]} />
+        <meshBasicMaterial color={ACCENT_CYAN} />
+      </mesh>
+      <mesh position={[northRamp.position[0] - 2.02, northRamp.position[1] + 0.22, northRamp.position[2]]} rotation={[northRamp.rotationX, 0, 0]}>
+        <boxGeometry args={[0.05, 0.05, northRamp.length]} />
+        <meshBasicMaterial color={ACCENT_CYAN} />
+      </mesh>
+      <mesh position={[northRamp.position[0] + 2.02, northRamp.position[1] + 0.22, northRamp.position[2]]} rotation={[northRamp.rotationX, 0, 0]}>
+        <boxGeometry args={[0.05, 0.05, northRamp.length]} />
+        <meshBasicMaterial color={ACCENT_CYAN} />
       </mesh>
 
       {/* Decorative scenery outside the playable zone */}
@@ -139,10 +170,21 @@ function DecorProp({
   shadows: boolean;
 }) {
   const color = kind === "crate" ? "#3a2c1f" : kind === "spire" ? "#1c2536" : "#242f42";
+  const accent = position[0] < 0 ? ACCENT_CYAN : ACCENT_ORANGE;
   return (
-    <mesh position={position} rotation={[0, rotationY, 0]} castShadow={shadows} receiveShadow={shadows}>
-      {kind === "spire" ? <coneGeometry args={[scale[0] / 2, scale[1], 6]} /> : <boxGeometry args={scale} />}
-      <meshStandardMaterial color={color} roughness={0.9} />
-    </mesh>
+    <group>
+      <mesh position={position} rotation={[0, rotationY, 0]} castShadow={shadows} receiveShadow={shadows}>
+        {kind === "spire" ? <coneGeometry args={[scale[0] / 2, scale[1], 6]} /> : <boxGeometry args={scale} />}
+        <meshStandardMaterial color={color} roughness={0.9} />
+      </mesh>
+      {/* A thin glowing band near the top — flat single-color props read as
+          plain silhouettes against the night sky without any accent detail. */}
+      {kind !== "spire" && (
+        <mesh position={[position[0], position[1] + scale[1] / 2 - 0.15, position[2]]} rotation={[0, rotationY, 0]}>
+          <boxGeometry args={[scale[0] + 0.03, 0.08, scale[2] + 0.03]} />
+          <meshStandardMaterial color={accent} emissive={accent} emissiveIntensity={0.9} />
+        </mesh>
+      )}
+    </group>
   );
 }
