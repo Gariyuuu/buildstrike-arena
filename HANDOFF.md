@@ -3,9 +3,19 @@
 Short, high-signal onboarding for a new Claude account (or any new
 contributor) picking up this project cold, with zero access to prior
 chat history. Everything here is backed by the other documentation
-files, all verified against the repository on 2026-08-06 (most recently
+files, verified against the repository on 2026-08-06 (most recently
 after a session that actually ran and fixed real bugs in Online 1v1 —
-see `SESSION_LOG.md`'s latest entry).
+see `SESSION_LOG.md`'s latest entry), with a 2026-08-07 doc-only
+checkpoint pass on top (git state, deploy liveness, secret scan — see
+`PROJECT_STATE.md`'s "2026-08-07 checkpoint findings"). **Note:** the
+numbered "What was the previous agent doing" history below stops at the
+2026-08-06 `T-010` session and predates the "Lobby Update" (v0.2.0)
+expansion — progression/cosmetics/daily-rewards/Training-Arena, a git
+repo + GitHub remote, the first live deploy, and at least one further
+commit since (a character-model visual fix). See `CHANGELOG.md` and
+`SESSION_LOG.md` for that later history; this section wasn't rewritten
+to keep the checkpoint pass scoped, but don't assume it's the full
+story.
 
 ## Is this deployed anywhere?
 
@@ -161,7 +171,11 @@ version: `next.config.ts`'s `reactStrictMode: false`,
 `game/physics/useCharacterMover.ts`'s missing cleanup, the
 `eslint.config.mjs` rule overrides, the wire protocol shapes, the
 `party/` relative-import convention, and `wrangler.jsonc`'s Durable
-Object migration block (once a real deploy has happened — none has yet).
+Object migration block — **a real `wrangler deploy` has now happened**
+(live since 2026-08-06), so per `CLAUDE.md`'s own note, renaming the
+`GameRoom` class or removing a migration entry now requires a new
+migration tag, not an edit to the existing one; this is no longer a
+low-risk hypothetical.
 
 ## Which commands should I run first?
 
@@ -214,29 +228,52 @@ Arena, a browser-based 3D 1v1 build-and-shoot game (Next.js + React
 Three Fiber + Rapier), with a separate Cloudflare Worker backend for
 online multiplayer.
 
+Ground truth as of the 2026-08-07 doc checkpoint (verify it's still
+true — this repo moves fast):
+- It IS a real git repo now, with its own commit history and a GitHub
+  remote (`origin` -> github.com/Gariyuuu/buildstrike-arena.git, branch
+  `main`). This project used to have zero commits — that's no longer
+  true; don't trust any older doc text that still says otherwise.
+- Both halves are live: the app on Vercel
+  (https://buildstrike-arena.vercel.app, CLI-deployed, no Git
+  integration) and the realtime backend on Cloudflare Workers
+  (buildstrike-arena-realtime.chamber-seven.workers.dev). Both answered
+  HTTP 200 as of this checkpoint.
+- This project has shown bursts of very active iteration (new commits
+  and new Vercel production deployments landing minutes apart during
+  the 2026-08-07 checkpoint) — possibly from a concurrent session. Treat
+  any "current state" snapshot in these docs, including this one, as
+  provisional until you re-check `git log`/`git status`/`vercel ls`
+  yourself.
+
 After reading those files:
-1. Run `git status` and inspect recent commits (if any exist by the
-   time you read this — as of the last audit, this project had zero
-   commits and was not its own git repository).
-2. Re-run the verification commands listed in HANDOFF.md and confirm
-   they still pass, to check the documentation is still accurate.
+1. Run `git status`, `git log --oneline -10`, and `git fetch origin` to
+   get the true current commit/branch state — do not assume it matches
+   what PROJECT_STATE.md says without checking, given the note above.
+2. Re-run the verification commands listed in HANDOFF.md
+   (`tsc` x2, `eslint`, `npm run build`, `wrangler deploy --dry-run`)
+   and confirm they still pass, to check the documentation is still
+   accurate.
 3. Read whichever of ARCHITECTURE.md / FEATURES.md / API_REFERENCE.md /
    DATABASE.md / SECURITY.md / UI_SYSTEM.md / DECISIONS.md is relevant
    to what you're about to do.
 4. Summarize your understanding of the current state back to me in a
    few sentences before making any changes, and flag anything in the
    documentation that looks stale or contradicts what you find in the
-   actual code.
+   actual code or git history.
 5. Continue from TASKS.md's remaining "Low priority"/"Technical debt"
-   sections — do not redo work already marked complete there or in
-   FEATURES.md. T-001 through T-010 are all done.
+   sections, or whatever the user asks for next — do not redo work
+   already marked complete there or in FEATURES.md/CHANGELOG.md.
 6. Preserve the existing architecture (the GameAdapter abstraction, the
    ref-vs-Zustand split, the server-authoritative trust boundary, the
    config-driven tuning pattern) unless you find a strong, specific
    reason to change it — and if you do change something architectural,
    record it in DECISIONS.md.
-7. After completing any meaningful work, update PROJECT_STATE.md,
-   TASKS.md, and append to SESSION_LOG.md (append — never overwrite
-   prior entries), plus whichever other documentation file(s) your
-   change affects.
+7. After completing any meaningful work: commit it (small, reviewable
+   commits, real message — this project does have git now), update
+   PROJECT_STATE.md, TASKS.md, CHANGELOG.md, and append to
+   SESSION_LOG.md (append — never overwrite prior entries), plus
+   whichever other documentation file(s) your change affects. If you
+   redeploy (`vercel --prod` and/or `wrangler deploy`), record that in
+   DEPLOYMENT.md/PROJECT_STATE.md too.
 ```

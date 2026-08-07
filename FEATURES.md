@@ -1,5 +1,13 @@
 # FEATURES.md
 
+**Staleness note (2026-08-07):** this file predates the "Lobby Update"
+(progression/cosmetics/daily-rewards/Training-Arena, `CHANGELOG.md`
+v0.2.0) and a full **Battle Royale mode** (`game/br/`,
+`components/game/BattleRoyaleScene.tsx`, three maps) — neither is
+documented below. See `CHANGELOG.md` and `git log` for what's actually
+shipped; not rewritten here to keep the 2026-08-07 doc-checkpoint pass
+scoped (see `PROJECT_STATE.md`).
+
 Every major feature, classified by actual verified wiring through the
 full flow — not by "files exist." Status legend:
 
@@ -216,8 +224,10 @@ full flow — not by "files exist." Status legend:
   `stores/networkStore.ts`.
 - **Backend:** `party/server.ts` (entire `GameRoom` Durable Object).
 - **DB dependencies:** None (in-memory).
-- **External integrations:** Cloudflare Workers/Durable Objects
-  (deployment target, not yet actually deployed).
+- **External integrations:** Cloudflare Workers/Durable Objects — live
+  since 2026-08-06 at `buildstrike-arena-realtime.chamber-seven.workers.dev`
+  (re-verified reachable as of the 2026-08-07 doc checkpoint); see
+  `DEPLOYMENT.md`.
 - **Env vars:** `NEXT_PUBLIC_PARTY_HOST` — if unset in production (any
   hostname other than `localhost`), the client now fails fast with a
   clear, user-visible error instead of silently trying `localhost:8787`

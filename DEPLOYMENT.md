@@ -3,9 +3,13 @@
 **Both targets are live as of 2026-08-06:**
 
 - **App:** https://buildstrike-arena.vercel.app (Vercel, CLI-deployed
-  directly from this local directory — **not** via a Git integration,
-  since this project has no git repo/commits; see `PROJECT_STATE.md`.
-  No preview deployments exist for the same reason.)
+  directly from this local directory — **not** via a Git integration.
+  A dedicated git repo with a GitHub remote does now exist for this
+  project (since 2026-08-06; see `PROJECT_STATE.md` → Git state), but
+  `vercel project inspect buildstrike-arena` shows no Git Repository
+  connected, so deploys still go out via `vercel --prod` CLI, not an
+  automatic push-to-deploy pipeline. No preview deployments exist for
+  the same reason — every deploy so far has been a manual `--prod`.)
 - **Realtime backend:** `buildstrike-arena-realtime.chamber-seven.workers.dev`
   (Cloudflare Worker, deployed via `npx wrangler deploy`)
 
@@ -88,9 +92,10 @@ project). No custom domain configured or needed.
 ## Preview deployments
 
 None — this project was deployed via `vercel --prod` directly from the
-local directory (no Git integration, since this project has no git
-repo/commits — see `PROJECT_STATE.md`), so there's no branch-based
-preview flow. A plain `vercel` (no `--prod`) from this directory would
+local directory (no Git integration configured on the Vercel project —
+see `PROJECT_STATE.md` → Git state for why that's independent of
+whether a git repo exists), so there's no branch-based preview flow. A
+plain `vercel` (no `--prod`) from this directory would
 create a preview deployment on demand if ever needed. Cloudflare Workers
 has no equivalent "preview deploy per branch" set up here either
 (`wrangler deploy` always targets the one Worker named

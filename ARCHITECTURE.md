@@ -3,6 +3,13 @@
 Technical architecture reference for BuildStrike Arena. All file paths
 verified against the repository as of 2026-08-06.
 
+**Staleness note (2026-08-07):** written before the "Lobby Update" and
+Battle Royale mode shipped (see `CHANGELOG.md` v0.2.0, `git log`) — this
+document does not cover `game/br/` (Battle Royale), the Lobby hub
+(`components/ui/Lobby.tsx`), cosmetics (`stores/inventoryStore.ts`), or
+progression (`stores/profileStore.ts`). Not rewritten here to keep the
+2026-08-07 doc-checkpoint pass scoped — see `PROJECT_STATE.md`.
+
 ## System overview
 
 Two independent deployables share one repository:

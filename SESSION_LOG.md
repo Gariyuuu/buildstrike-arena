@@ -631,3 +631,110 @@ newest-first.
 - **Recommended next action:** A real two-human-browser Online 1v1
   session against the live URLs — see `PROJECT_STATE.md` →
   "Recommended next three actions."
+
+### Session: 2026-08-07 — Final transfer checkpoint (this session)
+
+- **Account/agent:** Unknown (checkpoint/audit pass, delegated to a
+  research subagent).
+- **Goal:** A "final transfer checkpoint" pass for account-switch
+  handoff — re-verify the 17-file doc set against real current repo
+  state, resolve cross-file contradictions, scan for secrets, and
+  refresh `HANDOFF.md`'s "Prompt for the next Claude Code account".
+  Explicitly not a feature-development session.
+- **Context found at session start:** unlike every prior session's
+  audit note, this project now **does** have its own dedicated git
+  repository (confirmed via `git rev-parse --show-toplevel` resolving to
+  `~/Projects/buildstrike-arena` itself, not the parent `~/Projects`
+  repo) with a GitHub remote (`origin` -> `github.com/Gariyuuu/
+  buildstrike-arena.git`) and real commit history — this had already
+  happened by the 2026-08-06 "Lobby Update" session per `CHANGELOG.md`,
+  but several docs (`PROJECT_STATE.md`, `DEPLOYMENT.md`, `CLAUDE.md`)
+  still echoed the older "no git repo, zero commits" framing from
+  earlier in that same day. Two uncommitted changes were present at
+  session start (`git status`): a modified `components/game/
+  CharacterModel.tsx` and an untracked `shots-live/` debug-screenshot
+  folder. While inspecting them (reading the diff, running `tsc`/
+  `eslint`/`npm run build`, viewing the screenshots to confirm the
+  visual fix), a commit (`27e328e`, "Fix head rendering as
+  all-black-and-white with no visible skin tone") landed on `main`
+  containing exactly that `CharacterModel.tsx` change plus a
+  `.gitignore` entry for `shots-live/` — apparently from a concurrent
+  process/session also working in this same directory, since this
+  session made no commit itself. `vercel ls` also showed new production
+  deployments landing minutes apart during this session, confirming
+  active concurrent iteration on this project in real time.
+- **Inspected:** `git status`/`git diff`/`git log`/`git fetch origin`;
+  `npx tsc --noEmit`, `npm run lint`, `npm run build` (all clean — 0
+  errors, 2 pre-existing `<img>` warnings only); `curl` against both
+  live URLs (Vercel app and Cloudflare Worker, both `200`); `vercel
+  project inspect buildstrike-arena` (confirmed no Git Repository
+  connected — still CLI-only deploys); `git grep` across all tracked
+  files for secret-like patterns (api keys, tokens, passwords, AWS/
+  private-key markers) — no real secret found, one false-positive
+  prose match on the word "secret"; read `.env.local` directly —
+  contains only the documented `NEXT_PUBLIC_PARTY_HOST` dev value plus
+  an untracked, correctly-gitignored, short-lived Vercel CLI OIDC
+  token (not a concern, never committed); read all 17 canonical docs
+  for cross-file contradictions.
+- **Files changed:** `PROJECT_STATE.md` (rewrote the "Git state"
+  section to reflect the real repo/remote/commit state; added a
+  "2026-08-07 checkpoint findings" subsection under Audit record;
+  corrected the Vercel-deploy-reasoning line), `DEPLOYMENT.md`
+  (corrected two "no git repo/commits" lines to explain the *actual*
+  reason Vercel deploys are CLI-only — no Git integration configured on
+  the Vercel project — independent of git-repo existence),
+  `CLAUDE.md` (corrected the contradictory "Production status: Not
+  deployed anywhere" paragraph, the tech-stack table's "Hosting
+  provider: None configured" row, the "Exact stopping point"/"Current
+  blockers" bullets, and the AI-working-instructions git-status step —
+  all previously contradicted `CLAUDE.md`'s own later "## Deployment"
+  section, which was already correct), `HANDOFF.md` (added a header
+  note flagging that the numbered history predates the Lobby Update/git-
+  init/deploy/character-fix; corrected the `wrangler.jsonc` migration-
+  block risk note now that a real deploy has happened; fully rewrote
+  the "Prompt for the next Claude Code account" section with accurate
+  current state and instructions to re-verify rather than trust any
+  snapshot, given this project's fast pace), `SESSION_LOG.md` (this
+  entry). No product/application code was touched by this session
+  (the one code change present, `27e328e`, was made and committed by
+  something else during the session, not by this checkpoint pass).
+- **Tests run:** `npx tsc --noEmit` (exit 0), `npm run lint` (exit 0, 2
+  pre-existing warnings), `npm run build` (succeeded). Did not re-run
+  `npx wrangler deploy --dry-run` or the Playwright smoke tests this
+  pass (no server/party code touched; live-URL `curl` checks were
+  considered sufficient live-deploy evidence for a doc-only pass).
+- **Problems found:** Stale "no git repo" claims in three docs
+  (`PROJECT_STATE.md`, `DEPLOYMENT.md`, `CLAUDE.md`), one internal
+  self-contradiction in `CLAUDE.md` (its "Project identity" section said
+  "Not deployed anywhere" while its own "## Deployment" section, further
+  down the same file, correctly said "Live as of 2026-08-06"), and
+  `HANDOFF.md`'s stale `wrangler.jsonc` migration-risk note. No secrets
+  found in tracked files or docs.
+- **Decisions made:** Left `SESSION_LOG.md`'s historical entries
+  (2026-08-05 through the deployment session) untouched rather than
+  editing them — they're accurate records of what was true *at the
+  time*; the correction belongs in the currently-authoritative docs
+  (`PROJECT_STATE.md`/`CLAUDE.md`/`DEPLOYMENT.md`) and in this new
+  entry, not retroactively rewritten history. Did not commit
+  `shots-live/` (already correctly gitignored, confirmed pre-existing
+  convention per other doc references to it). Did not attempt to
+  reconcile with whatever concurrent process committed `27e328e` beyond
+  verifying its content was sound — no conflict occurred since this
+  session made no competing commit.
+- **Work completed:** Doc-vs-reality audit and correction across all 17
+  canonical files; git/deploy state re-verified directly rather than
+  repeated from memory; secret scan; refreshed handoff prompt.
+- **Work remaining:** Same substantive gaps as before this pass (a real
+  two-human-browser Online 1v1 session is still the top gap; `BUG-010`
+  still open) — this was a documentation-only pass and didn't address
+  product backlog. The "Lobby Update" era's own session log entry is
+  still missing (this doc set jumps from the 2026-08-06 deployment
+  session straight to this 2026-08-07 checkpoint, with the intervening
+  Lobby Update work only visible via `CHANGELOG.md`, not a matching
+  `SESSION_LOG.md` entry) — worth backfilling if anyone wants the full
+  narrative, not done here to keep this pass scoped to its stated job.
+- **Recommended next action:** Same as the prior session's — a real
+  two-human-browser Online 1v1 session against the live URLs. If
+  picking up product work, first re-confirm `git log`/`git status`
+  fresh, since this repo has shown bursts of concurrent/fast-moving
+  activity.

@@ -11,6 +11,10 @@ procedural geometry and every sound is synthesized in the browser.
 - **Bot Duel** works completely offline / with no backend.
 - **Online 1v1** needs one small realtime backend (a Cloudflare Worker —
   see [Multiplayer backend setup](#multiplayer-backend-setup)).
+- A **Battle Royale** mode (three maps) and a no-stakes **Training
+  Arena** have also shipped since this README section was last written
+  (see `CHANGELOG.md` v0.2.0) — not yet described in detail below;
+  flagged 2026-08-07, not filled in as part of that pass.
 
 ## Table of contents
 

@@ -4,6 +4,15 @@ Practical map of the repository, prioritizing files a future agent is
 likely to read or modify. Trivial generated files (`next-env.d.ts`,
 `tsconfig.tsbuildinfo`, `.next/`, `.wrangler/`) are omitted.
 
+**Staleness note (2026-08-07):** predates the "Lobby Update" and Battle
+Royale mode (see `CHANGELOG.md` v0.2.0) — this map doesn't list
+`game/br/`, `components/game/BattleRoyaleScene.tsx`,
+`components/ui/Lobby.tsx`, `components/ui/BRResults.tsx`,
+`stores/inventoryStore.ts`, `stores/profileStore.ts`,
+`game/config/{cosmetics,levels,dailyRewards}.ts`, or `game/animation/`.
+Not rewritten here to keep the 2026-08-07 doc-checkpoint pass scoped —
+see `PROJECT_STATE.md`.
+
 ## Where to make common changes
 
 | I want to… | Edit this |

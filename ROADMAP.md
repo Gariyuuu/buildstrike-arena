@@ -4,12 +4,35 @@ No time estimates are given anywhere in this file — none exist in the
 repository to draw from, and the task instructions this file was created
 under explicitly say not to invent them.
 
+**STALE — flagged 2026-08-07, not rewritten (out of scope for that
+checkpoint pass; see `PROJECT_STATE.md`).** This entire file predates a
+large amount of shipped work confirmed in `git log`/`CHANGELOG.md`: the
+"Lobby Update" (progression/cosmetics/daily-rewards/Training-Arena — see
+`CHANGELOG.md` v0.2.0), a full **Battle Royale mode** with three maps
+(`game/br/`, `components/game/BattleRoyaleScene.tsx`,
+`components/ui/BRResults.tsx` all exist and are wired up —
+**contradicting this file's own "Out-of-scope" section below, which
+still lists Battle Royale as excluded**), a theme picker, and the first
+live deployment + git repo. `FEATURES.md`, `TASKS.md`, `ARCHITECTURE.md`,
+`FILE_MAP.md`, and `README.md` are similarly behind on this same
+material — none of them document the Lobby hub, cosmetics, Battle
+Royale, or Training Arena either. Treat `CHANGELOG.md` and `git log` as
+the actual source of truth for what's shipped until someone does a full
+pass to bring these files current. The two specific items below are
+corrected since they're actively misleading (not just incomplete):
+
 ## Current milestone: Verify Online 1v1 end-to-end
+
+**Corrected status: this milestone is DONE, not "Not started"** — see
+`TASKS.md` `T-001` (executed and verified live, per its own Outcome
+notes) and `SESSION_LOG.md`'s "Executed T-001" session entry. Original
+text preserved below for history:
 
 - **Objective:** Confirm the multiplayer path actually works with two
   live clients (see `TASKS.md` `T-001`).
 - **Priority:** Highest
-- **Status:** Not started
+- **Status:** ~~Not started~~ **Done** (2026-08-06) — two-client live
+  test passed, four real bugs found and fixed (`BUG-006`–`BUG-009`).
 - **Dependencies:** None — all code is in place
 - **Difficulty:** Low-Medium (no new code required, just running it and
   fixing whatever it surfaces)
@@ -94,7 +117,14 @@ in `README.md`, which reflects the scope the game was actually built
 against):
 
 - Public matchmaking (private room codes only, by design).
-- Battle royale / open world / large lobbies.
-- Complex inventory/economy systems.
-- More than 2 players per room.
+- ~~Battle royale / open world / large lobbies.~~ **No longer accurate
+  — a Battle Royale mode with three maps has since been built (see
+  staleness note at the top of this file); this exclusion is from the
+  original MVP scope and was superseded.**
+- Complex inventory/economy systems. **Partially superseded too** — the
+  Lobby Update added a real (if simple) cosmetics economy: Arena Coins,
+  a Shop, a Locker, 8+ purchasable/equippable skins (see
+  `CHANGELOG.md` v0.2.0). Still no real-money economy.
+- More than 2 players per room (per-duel-room cap — unclear if this
+  still holds for Battle Royale rooms; not verified this pass).
 - Spectator mode.

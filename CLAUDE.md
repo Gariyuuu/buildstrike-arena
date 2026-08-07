@@ -8,8 +8,11 @@ this repository. Read this file first, then `PROJECT_STATE.md`, then
 in-repo documentation system — see the full index in `HANDOFF.md`.
 
 Every fact below was verified directly against the repository on
-**2026-08-06** (see `PROJECT_STATE.md` for the exact audit record). Where a
-fact could not be verified, it is labeled `Unknown` or `Inferred`.
+**2026-08-06** (see `PROJECT_STATE.md` for the exact audit record), with
+git state, deploy liveness, and secret-scanning re-verified on
+**2026-08-07** in a doc-only checkpoint pass (no application code
+changed that pass). Where a fact could not be verified, it is labeled
+`Unknown` or `Inferred`.
 
 ## Project identity
 
@@ -33,9 +36,16 @@ fact could not be verified, it is labeled `Unknown` or `Inferred`.
   through iterative playtesting, has **no automated tests**, and has
   several documented correctness gaps (see `TASKS.md` → Bugs). Treat it as
   "built and smoke-tested once," not "hardened."
-- **Production status:** **Not deployed anywhere.** No Vercel project, no
-  Cloudflare Worker deployment, no GitHub repository, no git commits exist
-  for this project (verified — see `PROJECT_STATE.md`). Only run locally.
+- **Production status:** **Live.** Deployed on Vercel
+  (https://buildstrike-arena.vercel.app) plus a Cloudflare Worker
+  (`buildstrike-arena-realtime.chamber-seven.workers.dev`) since
+  2026-08-06 — both re-verified reachable (`curl` → `200`) as of the
+  2026-08-07 doc audit. A dedicated git repository with a GitHub remote
+  (`github.com/Gariyuuu/buildstrike-arena`) also exists as of
+  2026-08-06 — see `PROJECT_STATE.md` → Git state for the current exact
+  commit/branch state; do not assume the older "no git repo, not
+  deployed" framing that may still linger in historical `SESSION_LOG.md`
+  entries below this date.
 - **Repository type:** Single Next.js app (App Router) with one embedded
   secondary deployable: a Cloudflare Worker at `party/server.ts` for the
   realtime multiplayer backend. Not a monorepo (no workspaces/turborepo),
@@ -59,16 +69,24 @@ See `PROJECT_STATE.md` for the full, precise snapshot. Summary:
   verified. See `DECISIONS.md` D-013 through D-019 and `TASKS.md`'s Bugs
   table (`BUG-001` through `BUG-009` all fixed; only `BUG-010` remains
   open, narrow-scope).
-- **Exact stopping point:** All 7 phases implemented, both modes
-  live-verified, and the full known-bug backlog from the initial audit
-  worked through; `README.md` written; no git commits made yet anywhere
-  in this project.
-- **Current blockers:** None for local development. For production
-  deployment: `NEXT_PUBLIC_PARTY_HOST` is still not configured anywhere
-  (no real deploy has happened), but as of `T-002` (2026-08-06) the
-  client now fails loudly with a clear message if it's unset in a
-  non-localhost environment, instead of silently falling back to
-  `localhost:8787`.
+- **Exact stopping point (as of the 2026-08-06 T-010 session):** All 7
+  phases implemented, both modes live-verified, and the full known-bug
+  backlog from the initial audit worked through; `README.md` written.
+  **Since then** (still 2026-08-06): a git repo + GitHub remote was
+  initialized, the "Lobby Update" expansion (progression, cosmetics,
+  daily rewards, Training Arena — see `CHANGELOG.md` v0.2.0) shipped,
+  and both the app (Vercel) and realtime backend (Cloudflare Worker)
+  were deployed live for the first time. As of a 2026-08-07 doc
+  checkpoint, both remain live and the repo has continued to receive
+  commits (a character-model visual fix, `27e328e`) — this is an
+  actively-iterated project, not a frozen prototype; check `git log`
+  fresh rather than trusting this line for long.
+- **Current blockers:** None for local development or production use.
+  `NEXT_PUBLIC_PARTY_HOST` is configured in Vercel's Production
+  environment (pointing at the live Worker host) — see `DEPLOYMENT.md`.
+  As of `T-002` (2026-08-06) the client also fails loudly with a clear
+  message if it's ever unset in a non-localhost environment, instead of
+  silently falling back to `localhost:8787`.
 - **Highest-priority next task:** A real (non-scripted) two-human-browser
   Online 1v1 session — see `PROJECT_STATE.md` → "Recommended next three
   actions" for why this is now the top gap.
@@ -101,7 +119,7 @@ version is installed without re-checking.
 | Database | **None.** No ORM, no DB client, no schema files anywhere in the repo. |
 | Auth provider | **None.** No login/accounts/sessions of any kind. |
 | Storage provider | **None.** No file/blob storage. |
-| Hosting provider | **None configured.** README documents Vercel (app) + Cloudflare Workers (realtime) as the intended targets; neither is wired up (no `.vercel/`, no deployed Worker). |
+| Hosting provider | **Live since 2026-08-06.** Vercel (app, `.vercel/` present, CLI-deployed) + Cloudflare Workers (realtime backend, deployed via `wrangler deploy`). See `DEPLOYMENT.md`. |
 | Analytics | **None.** |
 | Payments | **None.** |
 | Email | **None.** |
@@ -529,9 +547,12 @@ Highlights an agent should know before touching related code:
    to touch.
 5. Inspect the affected code before changing it — do not assume this
    document is still accurate months later; verify.
-6. Check `git status` before modifying files (see note below: as of this
-   audit there is no git repository initialized for this project
-   specifically — confirm current state, don't assume).
+6. Check `git status` before modifying files. A dedicated git repository
+   (with a GitHub remote) exists for this project as of 2026-08-06 — but
+   this repo has shown very active, fast-moving commit/deploy activity
+   (see `PROJECT_STATE.md` → Git state), so re-confirm current branch/
+   commit/clean-tree state fresh each session rather than trusting any
+   snapshot in these docs for long.
 7. Avoid overwriting unrelated work.
 8. Make small, reviewable changes.
 9. Run relevant verification after changes: `npx tsc --noEmit -p

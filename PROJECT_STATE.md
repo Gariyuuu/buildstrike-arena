@@ -9,26 +9,69 @@ re-deriving anything.**
 
 ## Audit record
 
-- **Timestamp of this audit:** 2026-08-06 (later same day, second half
-  of the session that ran `T-001`)
-- **What happened this session:** Worked through the entire remaining
-  `TASKS.md` priority queue, `T-002` through `T-010` — nine tasks
-  covering `BUG-001` through `BUG-005` and `BUG-003b`, plus three
+- **Timestamp of latest audit:** 2026-08-07 — a documentation-only
+  "final transfer checkpoint" pass (doc-vs-reality cross-check, secret
+  scan, git-state correction). No application code was changed this
+  pass. See the bottom of this section for what it found.
+- **Previous audit:** 2026-08-06 (later same day, second half of the
+  session that ran `T-001`) — see below for that session's detail.
+- **What happened in the 2026-08-06 session:** Worked through the entire
+  remaining `TASKS.md` priority queue, `T-002` through `T-010` — nine
+  tasks covering `BUG-001` through `BUG-005` and `BUG-003b`, plus three
   additive/cleanup tasks (build-rejected UI feedback, dead protocol
   fields, dead config fields). See `SESSION_LOG.md`'s latest entry and
   `TASKS.md`/`DECISIONS.md` (D-017 through D-019) for full detail. **This
   was a product-development session — real application code changed.**
 
+### 2026-08-07 checkpoint findings
+
+- Found one already-committed application change (`27e328e`, a
+  `CharacterModel.tsx` face/hair visual fix) that had landed since the
+  last doc update — verified it passes `tsc`/`eslint`/`build` and looks
+  correct in local screenshots (`shots-live/`, gitignored). No doc update
+  was needed for it beyond this note since it isn't part of a documented
+  feature area with detailed claims.
+- Corrected the stale "no git repo / no commits" framing that had been
+  echoed in this file, `DEPLOYMENT.md`, and `CLAUDE.md` — a dedicated git
+  repo (with a GitHub remote) has existed since 2026-08-06; see `Git
+  state` below.
+- Re-confirmed both live deploys directly (not just repeating the prior
+  claim): `curl` to `https://buildstrike-arena.vercel.app` → `200`;
+  `curl` to `https://buildstrike-arena-realtime.chamber-seven.workers.dev`
+  → `200` with the expected server banner text. Also observed via
+  `vercel ls` that new production deployments were landing minutes apart
+  during this audit — this project is under active, ongoing iteration,
+  possibly by a concurrent session.
+- Secret scan across all tracked files and all 17 docs found no real
+  secrets committed. `.env.local` (untracked, correctly gitignored)
+  contains a short-lived Vercel CLI OIDC token — not a concern, never
+  committed.
+
 ## Git state
 
+**Corrected 2026-08-07 — the "no git repo" framing below and elsewhere in
+this doc set is stale.** A dedicated git repository was initialized for
+this project on 2026-08-06 (see `CHANGELOG.md`'s v0.2.0 entry) and has
+since accumulated real commit history, including a GitHub remote.
+
 - **Repository root (per `git rev-parse --show-toplevel`):**
-  `/Users/gariyuu/Projects` — **not** `/Users/gariyuu/Projects/buildstrike-arena`.
-  Still an untracked folder inside the parent `~/Projects` git repo.
+  `/Users/gariyuu/Projects/buildstrike-arena` — its own repo, **not** a
+  subfolder of the parent `~/Projects` repo.
+- **Remote:** `origin` → `https://github.com/Gariyuuu/buildstrike-arena.git`
+  (fetch+push). Branch `main` tracks `origin/main` and was up to date
+  with it as of this audit.
 - **Current branch:** `main`
-- **Latest commit hash:** **None — "No commits yet"**, unchanged. Zero
-  commit history exists anywhere in the parent repo.
-- **Working tree clean?** No — untracked, as always. **Do not `git
-  init`, commit, or push without being explicitly asked.**
+- **Latest commit hash (as of this audit):** `27e328e` — "Fix head
+  rendering as all-black-and-white with no visible skin tone" (character
+  model face/hair visual fix — see `CharacterModel.tsx`).
+- **Working tree clean?** Yes, as of this audit — no staged or unstaged
+  changes, no untracked tracked-worthy files (`shots-live/` is a
+  gitignored local debug-screenshot folder, not source).
+- **Note for future sessions:** this repo has been under very active,
+  fast iteration — during this same audit, new Vercel production
+  deployments were observed landing minutes apart. Re-run `git status`/
+  `git log` fresh at the start of any session rather than trusting this
+  snapshot for long.
 
 ## Active development objective
 
@@ -151,7 +194,7 @@ None for continuing local development or further deployment.
 ## Deployment (new as of 2026-08-06)
 
 **The app is now live:**
-- App: https://buildstrike-arena.vercel.app (Vercel, `garywangsmes-8349s-projects/buildstrike-arena`, deployed via `vercel --prod` CLI — no Git integration exists, since this project still has no git repo/commits)
+- App: https://buildstrike-arena.vercel.app (Vercel, `garywangsmes-8349s-projects/buildstrike-arena`, deployed via `vercel --prod` CLI — `vercel project inspect` shows no Git Repository field, so it's still CLI-deployed, not Git-integration-deployed, even though a git repo/GitHub remote now exists for this project; see `Git state` above)
 - Realtime backend: `buildstrike-arena-realtime.chamber-seven.workers.dev` (Cloudflare Worker, deployed via `wrangler deploy`)
 - `NEXT_PUBLIC_PARTY_HOST` set in Vercel's Production environment to the Worker host above.
 - Also replaced the stale default `app/favicon.ico` (from the original `create-next-app` scaffold) — deleted it so the custom `app/icon.svg` (original branded hexagon/reticle design) is the sole, consistent app icon everywhere, including the browser tab on the live deploy.

@@ -1,9 +1,18 @@
 # TASKS.md
 
 Active execution queue. IDs are stable — reference them in commit
-messages/`SESSION_LOG.md`/`CHANGELOG.md` once real commits start
-happening. Update this file after every meaningful task (see `CLAUDE.md`
-→ Permanent rules).
+messages/`SESSION_LOG.md`/`CHANGELOG.md` (real commits are happening now
+— a git repo + GitHub remote has existed since 2026-08-06, see
+`PROJECT_STATE.md` → Git state). Update this file after every meaningful
+task (see `CLAUDE.md` → Permanent rules).
+
+**Staleness note (2026-08-07):** `T-001` through `T-010` below reflect
+work through the 2026-08-06 pre-"Lobby Update" state. Real feature work
+has shipped since (progression, cosmetics, Battle Royale mode, Training
+Arena, theme picker — see `CHANGELOG.md` v0.2.0 and `git log`) with no
+matching new task entries added here. Don't assume this is the complete
+backlog — check `CHANGELOG.md`/`git log` for what's actually shipped
+before picking a "next task."
 
 ---
 
