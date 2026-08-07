@@ -58,9 +58,13 @@ export const LOCOMOTION_POSES: Record<LocomotionId, LocomotionTarget> = {
   land: { legAmplitude: 0, hipDrop: 0.08, spineLean: 0.1, kneeBend: [0.45, 0.45] },
 };
 
-/** How quickly (damp lambda) each animation layer blends toward its target — higher = snappier. */
+/** How quickly (damp lambda) each animation layer blends toward its target — higher = snappier.
+ * arms was tuned to 10 (faster than every other layer, including spine at
+ * 9) which made the arms visibly snap into pose ahead of the rest of the
+ * body — read as stiff/robotic ("arm physics") rather than a natural,
+ * connected motion. Lowered to flow at roughly the same rate as the torso. */
 export const ANIM_DAMPING = {
-  arms: 10,
+  arms: 8,
   locomotion: 8,
   spine: 9,
   headLook: 7,

@@ -174,13 +174,18 @@ export function CharacterModel({
       c.elbowXR = damp(c.elbowXR, 0.2, ANIM_DAMPING.arms, dt);
       c.spineLean = damp(c.spineLean, -0.08, ANIM_DAMPING.spine, dt);
     } else {
-      c.shoulderXL = damp(c.shoulderXL, arm.shoulderX[0] - hitKick * 0.3, ANIM_DAMPING.arms, dt);
-      c.shoulderXR = damp(c.shoulderXR, arm.shoulderX[1] - fireKick * 0.12 - hitKick * 0.3, ANIM_DAMPING.arms, dt);
+      // Subtle idle "breathing" sway — a perfectly frozen idle pose was part
+      // of what read as stiff/robotic ("arm physics is off"). Only applied
+      // at rest (no weapon actively raised, not moving) so it never
+      // interferes with aim during combat.
+      const breathe = armPoseId === "none" && speed < 0.05 && grounded ? Math.sin(now / 900) * 0.03 : 0;
+      c.shoulderXL = damp(c.shoulderXL, arm.shoulderX[0] - hitKick * 0.3 + breathe, ANIM_DAMPING.arms, dt);
+      c.shoulderXR = damp(c.shoulderXR, arm.shoulderX[1] - fireKick * 0.12 - hitKick * 0.3 + breathe, ANIM_DAMPING.arms, dt);
       c.shoulderZL = damp(c.shoulderZL, arm.shoulderZ[0], ANIM_DAMPING.arms, dt);
       c.shoulderZR = damp(c.shoulderZR, arm.shoulderZ[1], ANIM_DAMPING.arms, dt);
       c.elbowXL = damp(c.elbowXL, arm.elbowX[0], ANIM_DAMPING.arms, dt);
       c.elbowXR = damp(c.elbowXR, arm.elbowX[1] + fireKick * 0.2, ANIM_DAMPING.arms, dt);
-      c.spineLean = damp(c.spineLean, loco.spineLean + arm.spineLean + hitKick * 0.35, ANIM_DAMPING.spine, dt);
+      c.spineLean = damp(c.spineLean, loco.spineLean + arm.spineLean + hitKick * 0.35 + breathe * 0.5, ANIM_DAMPING.spine, dt);
     }
 
     if (!emotePose) {
@@ -244,43 +249,45 @@ export function CharacterModel({
 
   return (
     <group ref={hips} position={[0, 0.5, 0]}>
-      {/* Pelvis */}
+      {/* Pelvis — slimmer than the original near-cube proportions (this
+          whole rig read as too blocky/"Minecraft," not the leaner stylized
+          look this game is going for). */}
       <mesh castShadow={shadows}>
-        <boxGeometry args={[0.34, 0.16, 0.24]} />
+        <boxGeometry args={[0.25, 0.16, 0.19]} />
         {materials.pants}
       </mesh>
 
       {/* Left leg: hip -> knee -> shoe */}
-      <group ref={leftHip} position={[-0.13, -0.02, 0]}>
+      <group ref={leftHip} position={[-0.1, -0.02, 0]}>
         <mesh ref={leftLeg} position={[0, -0.19, 0]} castShadow={shadows}>
-          <capsuleGeometry args={[0.1, 0.3, 4, 6]} />
+          <capsuleGeometry args={[0.078, 0.3, 4, 6]} />
           {materials.pants}
         </mesh>
         <group ref={leftKnee} position={[0, -0.38, 0]}>
           <mesh position={[0, -0.16, 0.01]} castShadow={shadows}>
-            <capsuleGeometry args={[0.085, 0.26, 4, 6]} />
+            <capsuleGeometry args={[0.066, 0.26, 4, 6]} />
             {materials.pants}
           </mesh>
           <mesh position={[0, -0.32, 0.05]} castShadow={shadows}>
-            <boxGeometry args={[0.14, 0.09, 0.24]} />
+            <boxGeometry args={[0.1, 0.08, 0.2]} />
             {materials.shoe}
           </mesh>
         </group>
       </group>
 
       {/* Right leg */}
-      <group ref={rightHip} position={[0.13, -0.02, 0]}>
+      <group ref={rightHip} position={[0.1, -0.02, 0]}>
         <mesh ref={rightLeg} position={[0, -0.19, 0]} castShadow={shadows}>
-          <capsuleGeometry args={[0.1, 0.3, 4, 6]} />
+          <capsuleGeometry args={[0.078, 0.3, 4, 6]} />
           {materials.pants}
         </mesh>
         <group ref={rightKnee} position={[0, -0.38, 0]}>
           <mesh position={[0, -0.16, 0.01]} castShadow={shadows}>
-            <capsuleGeometry args={[0.085, 0.26, 4, 6]} />
+            <capsuleGeometry args={[0.066, 0.26, 4, 6]} />
             {materials.pants}
           </mesh>
           <mesh position={[0, -0.32, 0.05]} castShadow={shadows}>
-            <boxGeometry args={[0.14, 0.09, 0.24]} />
+            <boxGeometry args={[0.1, 0.08, 0.2]} />
             {materials.shoe}
           </mesh>
         </group>
@@ -288,84 +295,92 @@ export function CharacterModel({
 
       {/* Spine -> chest, head, arms */}
       <group ref={spine} position={[0, 0.08, 0]}>
-        <mesh position={[0, 0.28, 0]} castShadow={shadows}>
-          <capsuleGeometry args={[0.19, 0.32, 4, 8]} />
+        <mesh position={[0, 0.26, 0]} castShadow={shadows}>
+          <capsuleGeometry args={[0.148, 0.34, 4, 8]} />
           {materials.jacket}
         </mesh>
         {/* Chest accent stripe */}
-        <mesh position={[0, 0.32, 0.2]}>
-          <boxGeometry args={[0.28, 0.12, 0.03]} />
+        <mesh position={[0, 0.3, 0.17]}>
+          <boxGeometry args={[0.21, 0.11, 0.03]} />
           {materials.accentMat}
         </mesh>
 
         {backAccessory && <BackAccessoryMesh def={backAccessory} shadows={shadows} />}
 
-        {/* Head */}
-        <group ref={head} position={[0, 0.58, 0]}>
+        {/* Neck — a short visible gap between torso and head instead of the
+            head sitting directly on the shoulders, which was the single
+            biggest thing making the silhouette read as blocky/voxel-ish. */}
+        <mesh position={[0, 0.46, 0]} castShadow={shadows}>
+          <cylinderGeometry args={[0.05, 0.06, 0.08, 8]} />
+          {materials.skinMat}
+        </mesh>
+
+        {/* Head — narrower and less perfectly cubic than before. */}
+        <group ref={head} position={[0, 0.55, 0]}>
           <mesh castShadow={shadows}>
-            <boxGeometry args={[0.32, 0.32, 0.34]} />
+            <boxGeometry args={[0.24, 0.27, 0.26]} />
             {materials.skinMat}
           </mesh>
           {/* Face: a dark tactical visor frame with two glowing eye slits
               (accent-colored, so every skin's face reads differently) instead
               of the old single flat accent bar, which looked like a blank
               plate rather than a face. */}
-          <mesh position={[0, 0.005, 0.175]}>
-            <boxGeometry args={[0.27, 0.1, 0.025]} />
+          <mesh position={[0, 0.005, 0.135]}>
+            <boxGeometry args={[0.21, 0.09, 0.025]} />
             {materials.visorFrame}
           </mesh>
-          <mesh position={[-0.075, 0.008, 0.19]}>
-            <boxGeometry args={[0.075, 0.04, 0.015]} />
+          <mesh position={[-0.06, 0.008, 0.15]}>
+            <boxGeometry args={[0.06, 0.035, 0.015]} />
             {materials.eyeGlow}
           </mesh>
-          <mesh position={[0.075, 0.008, 0.19]}>
-            <boxGeometry args={[0.075, 0.04, 0.015]} />
+          <mesh position={[0.06, 0.008, 0.15]}>
+            <boxGeometry args={[0.06, 0.035, 0.015]} />
             {materials.eyeGlow}
           </mesh>
           {/* Jaw/chin shadow line for a touch more facial structure below the visor. */}
-          <mesh position={[0, -0.09, 0.175]}>
-            <boxGeometry args={[0.18, 0.02, 0.02]} />
+          <mesh position={[0, -0.075, 0.135]}>
+            <boxGeometry args={[0.14, 0.018, 0.02]} />
             {materials.visorFrame}
           </mesh>
           {hasHair && (
-            <mesh position={[0, 0.13, -0.03]} castShadow={shadows}>
-              <boxGeometry args={[0.33, 0.14, 0.32]} />
+            <mesh position={[0, 0.115, -0.02]} castShadow={shadows}>
+              <boxGeometry args={[0.25, 0.12, 0.25]} />
               {materials.hair}
             </mesh>
           )}
         </group>
 
         {/* Left arm: shoulder -> elbow -> hand */}
-        <group ref={leftShoulder} position={[-0.24, 0.42, 0]}>
-          <mesh position={[0, -0.15, 0]} castShadow={shadows}>
-            <capsuleGeometry args={[0.075, 0.22, 4, 6]} />
+        <group ref={leftShoulder} position={[-0.185, 0.4, 0]}>
+          <mesh position={[0, -0.14, 0]} castShadow={shadows}>
+            <capsuleGeometry args={[0.058, 0.22, 4, 6]} />
             {materials.jacket}
           </mesh>
-          <group ref={leftElbow} position={[0, -0.3, 0]}>
-            <mesh position={[0, -0.13, 0]} castShadow={shadows}>
-              <capsuleGeometry args={[0.065, 0.2, 4, 6]} />
+          <group ref={leftElbow} position={[0, -0.29, 0]}>
+            <mesh position={[0, -0.12, 0]} castShadow={shadows}>
+              <capsuleGeometry args={[0.05, 0.2, 4, 6]} />
               {materials.jacket}
             </mesh>
-            <mesh position={[0, -0.26, 0]} castShadow={shadows}>
-              <sphereGeometry args={[0.07, 8, 8]} />
+            <mesh position={[0, -0.24, 0]} castShadow={shadows}>
+              <sphereGeometry args={[0.055, 8, 8]} />
               {materials.skinMat}
             </mesh>
           </group>
         </group>
 
         {/* Right arm (weapon-holding side) */}
-        <group ref={rightShoulder} position={[0.24, 0.42, 0]}>
-          <mesh position={[0, -0.15, 0]} castShadow={shadows}>
-            <capsuleGeometry args={[0.075, 0.22, 4, 6]} />
+        <group ref={rightShoulder} position={[0.185, 0.4, 0]}>
+          <mesh position={[0, -0.14, 0]} castShadow={shadows}>
+            <capsuleGeometry args={[0.058, 0.22, 4, 6]} />
             {materials.jacket}
           </mesh>
-          <group ref={rightElbow} position={[0, -0.3, 0]}>
-            <mesh position={[0, -0.13, 0]} castShadow={shadows}>
-              <capsuleGeometry args={[0.065, 0.2, 4, 6]} />
+          <group ref={rightElbow} position={[0, -0.29, 0]}>
+            <mesh position={[0, -0.12, 0]} castShadow={shadows}>
+              <capsuleGeometry args={[0.05, 0.2, 4, 6]} />
               {materials.jacket}
             </mesh>
-            <mesh position={[0, -0.26, 0]} castShadow={shadows}>
-              <sphereGeometry args={[0.07, 8, 8]} />
+            <mesh position={[0, -0.24, 0]} castShadow={shadows}>
+              <sphereGeometry args={[0.055, 8, 8]} />
               {materials.skinMat}
             </mesh>
           </group>

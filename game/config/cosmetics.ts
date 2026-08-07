@@ -115,6 +115,110 @@ export const SKINS: Record<string, SkinDefinition> = {
     unlock: "shop",
     skin: { jacketColor: "#0e5c73", pantsColor: "#0a3d4d", shoeColor: "#062733", accentColor: "#33e6ff", hasHair: true },
   },
+  "skin-crimsonop": {
+    id: "skin-crimsonop",
+    name: "Crimson Op",
+    rarity: "rare",
+    description: "Blacked-out kit with a single bold red stripe.",
+    unlock: "shop",
+    skin: { jacketColor: "#1a1414", pantsColor: "#0f0c0c", shoeColor: "#080606", accentColor: "#ff2e2e", hasHair: true },
+  },
+  "skin-glacier": {
+    id: "skin-glacier",
+    name: "Glacier",
+    rarity: "epic",
+    description: "Crystalline ice-plate armor that catches every light.",
+    unlock: "shop",
+    skin: { jacketColor: "#bfe8f5", pantsColor: "#8fc9de", shoeColor: "#5c93a8", accentColor: "#e8fbff", hasHair: false },
+  },
+  "skin-voidwalker": {
+    id: "skin-voidwalker",
+    name: "Voidwalker",
+    rarity: "legendary",
+    description: "Absorbs the light around it. Trims glow a deep violet.",
+    unlock: "shop",
+    skin: { jacketColor: "#0d0a17", pantsColor: "#08060f", shoeColor: "#040309", accentColor: "#8a3aff", hasHair: false },
+  },
+  "skin-goldrush": {
+    id: "skin-goldrush",
+    name: "Gold Rush",
+    rarity: "epic",
+    description: "Prospector gear plated in real (arena) gold.",
+    unlock: "shop",
+    skin: { jacketColor: "#c9963a", pantsColor: "#8a6420", shoeColor: "#5c4315", accentColor: "#ffe27a", hasHair: true },
+  },
+  "skin-junglecamo": {
+    id: "skin-junglecamo",
+    name: "Jungle Camo",
+    rarity: "uncommon",
+    description: "Dense-canopy field fatigues.",
+    unlock: "shop",
+    skin: { jacketColor: "#3a5c2e", pantsColor: "#26401d", shoeColor: "#182b11", accentColor: "#7dffb0", hasHair: true },
+  },
+  "skin-emberknight": {
+    id: "skin-emberknight",
+    name: "Ember Knight",
+    rarity: "rare",
+    description: "Scorched plate armor, still glowing at the seams.",
+    unlock: "shop",
+    skin: { jacketColor: "#3a1f14", pantsColor: "#26140d", shoeColor: "#170c08", accentColor: "#ff8a33", hasHair: false },
+  },
+  "skin-frostbyte": {
+    id: "skin-frostbyte",
+    name: "Frostbyte",
+    rarity: "rare",
+    description: "A cryo-tech operative, chilled circuitry visible under the plating.",
+    unlock: "shop",
+    skin: { jacketColor: "#2a3a4a", pantsColor: "#1c2836", shoeColor: "#121b26", accentColor: "#7ae0ff", hasHair: true },
+  },
+  "skin-toxicwaste": {
+    id: "skin-toxicwaste",
+    name: "Toxic Waste",
+    rarity: "epic",
+    description: "Hazmat-inspired kit, glowing an unnatural green.",
+    unlock: "shop",
+    skin: { jacketColor: "#2c3a1a", pantsColor: "#1c2610", shoeColor: "#111708", accentColor: "#c6ff33", hasHair: false },
+  },
+  "skin-royaleguard": {
+    id: "skin-royaleguard",
+    name: "Royale Guard",
+    rarity: "legendary",
+    description: "Ceremonial purple-and-gold plate for the arena's champions.",
+    unlock: "shop",
+    skin: { jacketColor: "#3a1c5c", pantsColor: "#26123d", shoeColor: "#170b26", accentColor: "#ffd23f", hasHair: false },
+  },
+  "skin-shadowop": {
+    id: "skin-shadowop",
+    name: "Shadow Op",
+    rarity: "common",
+    description: "All black, no callsign, no questions.",
+    unlock: "shop",
+    skin: { jacketColor: "#121212", pantsColor: "#0a0a0a", shoeColor: "#050505", accentColor: "#9aa4b2", hasHair: true },
+  },
+  "skin-sunburst": {
+    id: "skin-sunburst",
+    name: "Sunburst",
+    rarity: "uncommon",
+    description: "Bright warm-weather gear, built to be seen.",
+    unlock: "shop",
+    skin: { jacketColor: "#ff9a33", pantsColor: "#c96b1a", shoeColor: "#8a4a12", accentColor: "#ffe27a", hasHair: true },
+  },
+  "skin-cobaltstrike": {
+    id: "skin-cobaltstrike",
+    name: "Cobalt Strike",
+    rarity: "rare",
+    description: "Deep-blue tactical plate with sharp geometric trim.",
+    unlock: "shop",
+    skin: { jacketColor: "#1a3a6b", pantsColor: "#122847", shoeColor: "#0b1a2e", accentColor: "#4d9fff", hasHair: true },
+  },
+  "skin-magmacore": {
+    id: "skin-magmacore",
+    name: "Magma Core",
+    rarity: "epic",
+    description: "Molten-rock plating, cracked seams glowing red-hot.",
+    unlock: "shop",
+    skin: { jacketColor: "#241414", pantsColor: "#160c0c", shoeColor: "#0d0707", accentColor: "#ff4d1a", hasHair: false },
+  },
 };
 
 export interface WeaponWrapDefinition {
@@ -135,6 +239,22 @@ export const WEAPON_WRAPS: Record<string, WeaponWrapDefinition> = {
   "wrap-jungle": { id: "wrap-jungle", name: "Jungle Ops", rarity: "uncommon", description: "Dense green field camouflage.", bodyColor: "#2f4a2f", barrelColor: "#1c2e1c" },
   "wrap-carbon": { id: "wrap-carbon", name: "Carbon Fiber", rarity: "rare", description: "Woven carbon-fiber paneling.", bodyColor: "#232323", barrelColor: "#141414" },
   "wrap-sunset": { id: "wrap-sunset", name: "Sunset Fade", rarity: "rare", description: "A warm orange-to-purple gradient finish.", bodyColor: "#a8493f", barrelColor: "#5c3a6b" },
+  "wrap-toxicbloom": { id: "wrap-toxicbloom", name: "Toxic Bloom", rarity: "epic", description: "Acid-green hazard coating.", bodyColor: "#2c3a1a", barrelColor: "#1c2610" },
+  "wrap-royalpurple": { id: "wrap-royalpurple", name: "Royal Purple", rarity: "epic", description: "Deep purple ceremonial finish.", bodyColor: "#3a1c5c", barrelColor: "#26123d" },
+  "wrap-emberforge": { id: "wrap-emberforge", name: "Ember Forge", rarity: "rare", description: "Forged in the arena's hottest furnace.", bodyColor: "#3a1f14", barrelColor: "#26140d" },
+  "wrap-frostbite": { id: "wrap-frostbite", name: "Frostbite", rarity: "rare", description: "Cold enough to sting bare hands.", bodyColor: "#2a3a4a", barrelColor: "#1c2836" },
+  "wrap-tigerstripe": { id: "wrap-tigerstripe", name: "Tiger Stripe", rarity: "uncommon", description: "Classic jungle-warfare stripe pattern.", bodyColor: "#4a3a1a", barrelColor: "#2a2010" },
+  "wrap-urbancamo": { id: "wrap-urbancamo", name: "Urban Camo", rarity: "common", description: "Grey-scale city camouflage.", bodyColor: "#3a3d42", barrelColor: "#24262a" },
+  "wrap-chromeplate": { id: "wrap-chromeplate", name: "Chrome Plate", rarity: "legendary", description: "Mirror-polished, fully chromed.", bodyColor: "#c9d2d8", barrelColor: "#9aa8b0" },
+  "wrap-blackout": { id: "wrap-blackout", name: "Blackout", rarity: "common", description: "Matte black, no reflections.", bodyColor: "#0c0d10", barrelColor: "#050608" },
+  "wrap-hazardstripe": { id: "wrap-hazardstripe", name: "Hazard Stripe", rarity: "uncommon", description: "Caution-tape yellow and black.", bodyColor: "#3a3410", barrelColor: "#1a1808" },
+  "wrap-galaxy": { id: "wrap-galaxy", name: "Galaxy", rarity: "legendary", description: "A deep-space finish flecked with starlight.", bodyColor: "#1a1a3a", barrelColor: "#0d0d1e" },
+  "wrap-bloodmoon": { id: "wrap-bloodmoon", name: "Blood Moon", rarity: "epic", description: "A dark crimson eclipse finish.", bodyColor: "#4a0d0d", barrelColor: "#260606" },
+  "wrap-mintfrost": { id: "wrap-mintfrost", name: "Mint Frost", rarity: "rare", description: "Cool mint with a frosted edge.", bodyColor: "#1a4a3a", barrelColor: "#0d2620" },
+  "wrap-coppervein": { id: "wrap-coppervein", name: "Copper Vein", rarity: "rare", description: "Oxidized copper piping and plate.", bodyColor: "#7a4a2a", barrelColor: "#4a2c18" },
+  "wrap-staticdischarge": { id: "wrap-staticdischarge", name: "Static Discharge", rarity: "epic", description: "Crackling with contained voltage.", bodyColor: "#1a1a2e", barrelColor: "#0f0f1e" },
+  "wrap-desertstorm": { id: "wrap-desertstorm", name: "Desert Storm", rarity: "uncommon", description: "Sand-scoured tan and khaki.", bodyColor: "#8a7248", barrelColor: "#5c4a2e" },
+  "wrap-abyssal": { id: "wrap-abyssal", name: "Abyssal", rarity: "legendary", description: "As dark and deep as the arena gets.", bodyColor: "#08080f", barrelColor: "#040408" },
 };
 export const DEFAULT_WRAP_ID = "wrap-default";
 
@@ -154,6 +274,10 @@ export const BACK_ACCESSORIES: Record<string, BackAccessoryDefinition> = {
   "back-glidewings": { id: "back-glidewings", name: "Glide Wings", rarity: "epic", description: "Folded mechanical wings.", color: "#b56bff", shape: "wings" },
   "back-oxytank": { id: "back-oxytank", name: "Ox Tank", rarity: "uncommon", description: "A sealed pressure tank.", color: "#6b7280", shape: "tank" },
   "back-riotshield": { id: "back-riotshield", name: "Riot Plate", rarity: "rare", description: "A slung defensive plate.", color: "#ff8a33", shape: "shield" },
+  "back-goldcape": { id: "back-goldcape", name: "Golden Cape", rarity: "legendary", description: "For arena royalty only.", color: "#ffd23f", shape: "cape" },
+  "back-voidwings": { id: "back-voidwings", name: "Void Wings", rarity: "legendary", description: "Folded wings that seem to drink the light.", color: "#3a1c5c", shape: "wings" },
+  "back-toxictank": { id: "back-toxictank", name: "Toxic Tank", rarity: "epic", description: "Contents unknown. Handle carefully.", color: "#7dff33", shape: "tank" },
+  "back-crimsonshield": { id: "back-crimsonshield", name: "Crimson Shield", rarity: "rare", description: "A blood-red defensive plate.", color: "#ff2e2e", shape: "shield" },
 };
 
 export interface PickaxeDefinition {
@@ -171,6 +295,10 @@ export const PICKAXES: Record<string, PickaxeDefinition> = {
   "pick-crimson": { id: "pick-crimson", name: "Blood Iron", rarity: "rare", description: "A rust-red forged head.", headColor: "#7a1a0d", handleColor: "#1c1c1c" },
   "pick-gold": { id: "pick-gold", name: "Golden Pick", rarity: "legendary", description: "Purely ceremonial. Still swings just as hard.", headColor: "#c9a227", handleColor: "#5c4527" },
   "pick-neon": { id: "pick-neon", name: "Volt Edge", rarity: "epic", description: "Etched with a glowing edge.", headColor: "#33e6ff", handleColor: "#1a1a2e" },
+  "pick-toxic": { id: "pick-toxic", name: "Venom Spike", rarity: "epic", description: "Coated in something you don't want to touch.", headColor: "#c6ff33", handleColor: "#1c2610" },
+  "pick-frost": { id: "pick-frost", name: "Ice Breaker", rarity: "rare", description: "Never quite thaws.", headColor: "#7ae0ff", handleColor: "#1c2836" },
+  "pick-royale": { id: "pick-royale", name: "Royal Edge", rarity: "legendary", description: "Purple-and-gold, fit for a champion.", headColor: "#ffd23f", handleColor: "#3a1c5c" },
+  "pick-copper": { id: "pick-copper", name: "Rustbound", rarity: "uncommon", description: "Salvaged, oxidized, still swings true.", headColor: "#a86a3a", handleColor: "#4a2c18" },
 };
 export const DEFAULT_PICKAXE_ID = "pick-default";
 
@@ -190,6 +318,14 @@ export const EMOTES: Record<string, EmoteDefinition> = {
   "emote-salute": { id: "emote-salute", name: "Salute", rarity: "uncommon", description: "Respect the opponent." },
   "emote-robot": { id: "emote-robot", name: "Robot Dance", rarity: "epic", description: "Original robot moves." },
   "emote-laugh": { id: "emote-laugh", name: "Laugh", rarity: "rare", description: "Can't help it." },
+  "emote-shuffle": { id: "emote-shuffle", name: "Shuffle", rarity: "epic", description: "A smooth side-to-side shuffle step." },
+  "emote-fistpump": { id: "emote-fistpump", name: "Fist Pump", rarity: "common", description: "Simple. Effective. Hype." },
+  "emote-spinflex": { id: "emote-spinflex", name: "Spin Flex", rarity: "rare", description: "Spin around, then flex." },
+  "emote-airguitar": { id: "emote-airguitar", name: "Air Guitar", rarity: "uncommon", description: "A killer solo, no guitar required." },
+  "emote-moonwalk": { id: "emote-moonwalk", name: "Moonwalk", rarity: "legendary", description: "The classic backward glide." },
+  "emote-breakdance": { id: "emote-breakdance", name: "Breakdance", rarity: "epic", description: "A spinning floor routine." },
+  "emote-powerstance": { id: "emote-powerstance", name: "Power Stance", rarity: "rare", description: "A hero's landing pose." },
+  "emote-freezeframe": { id: "emote-freezeframe", name: "Freeze Frame", rarity: "uncommon", description: "Strike a pose and hold it." },
 };
 
 export interface BannerDefinition {
@@ -206,6 +342,10 @@ export const BANNERS: Record<string, BannerDefinition> = {
   "banner-violet": { id: "banner-violet", name: "Violet Pulse", rarity: "epic", gradient: ["#b56bff", "#3a1a5c"] },
   "banner-gold": { id: "banner-gold", name: "Champion Gold", rarity: "legendary", gradient: ["#ffd23f", "#7a5c0d"] },
   "banner-mint": { id: "banner-mint", name: "Mint Static", rarity: "uncommon", gradient: ["#7dffb0", "#0d5c3a"] },
+  "banner-crimsonwave": { id: "banner-crimsonwave", name: "Crimson Wave", rarity: "rare", gradient: ["#ff2e2e", "#4a0d0d"] },
+  "banner-toxicfield": { id: "banner-toxicfield", name: "Toxic Field", rarity: "epic", gradient: ["#c6ff33", "#1c2610"] },
+  "banner-frostbound": { id: "banner-frostbound", name: "Frostbound", rarity: "rare", gradient: ["#7ae0ff", "#1c2836"] },
+  "banner-sovereign": { id: "banner-sovereign", name: "Sovereign", rarity: "legendary", gradient: ["#b56bff", "#ffd23f"] },
 };
 
 export interface IconDefinition {
@@ -222,6 +362,10 @@ export const ICONS: Record<string, IconDefinition> = {
   "icon-skull": { id: "icon-skull", name: "No Mercy", rarity: "epic", glyph: "☠" },
   "icon-crown": { id: "icon-crown", name: "Champion", rarity: "legendary", glyph: "♛" },
   "icon-shield": { id: "icon-shield", name: "Fortified", rarity: "uncommon", glyph: "⛨" },
+  "icon-allstar": { id: "icon-allstar", name: "All-Star", rarity: "epic", glyph: "✦" },
+  "icon-diamond": { id: "icon-diamond", name: "Diamond Hands", rarity: "legendary", glyph: "◈" },
+  "icon-duelist": { id: "icon-duelist", name: "Duelist", rarity: "rare", glyph: "⚔" },
+  "icon-nightowl": { id: "icon-nightowl", name: "Night Owl", rarity: "uncommon", glyph: "☾" },
 };
 
 export const RARITY_COLOR: Record<Rarity, string> = {
