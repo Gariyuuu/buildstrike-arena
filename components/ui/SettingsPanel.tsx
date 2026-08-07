@@ -84,8 +84,8 @@ export function SettingsPanel({ onBack }: { onBack?: () => void }) {
           </div>
           <div>
             <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-white/50">Bot Difficulty</p>
-            <div className="grid grid-cols-3 gap-2">
-              {(["easy", "normal", "hard"] as BotDifficulty[]).map((d) => (
+            <div className="grid grid-cols-4 gap-2">
+              {(["easy", "normal", "hard", "expert"] as BotDifficulty[]).map((d) => (
                 <button
                   key={d}
                   onClick={() => s.set({ botDifficulty: d })}

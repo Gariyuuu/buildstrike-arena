@@ -19,6 +19,7 @@ import { validatePlacement } from "@/game/building/grid";
 import { effectsBus } from "@/game/effects/effectsBus";
 import { soundManager } from "@/game/audio/soundManager";
 import { BotBrain, type BotPerception } from "@/game/bots/fsm";
+import { pickBotWeapon } from "@/game/bots/weaponSelect";
 import { positionTracker } from "@/game/state/positionTracker";
 import { usePlayerStore } from "@/stores/playerStore";
 import { useMatchStore } from "@/stores/matchStore";
@@ -222,7 +223,7 @@ export function BotPlayer({ difficulty, spawn }: { difficulty: BotDifficulty; sp
 
     // ---- Shooting ----
     if (intent.wantsToShoot && intent.aimAt && now >= nextFireTime.current) {
-      const weapon = distance < 9 && Math.random() < 0.5 ? WEAPONS.shotgun : WEAPONS.rifle;
+      const weapon = pickBotWeapon(distance, difficulty);
       nextFireTime.current = now + 1000 / weapon.fireRate;
       fireBotWeapon(weapon, eye, intent.aimAt, difficulty);
     }
@@ -257,7 +258,8 @@ export function BotPlayer({ difficulty, spawn }: { difficulty: BotDifficulty; sp
 
     fireFlashRef.current = performance.now();
     if (weapon.id !== currentWeapon) setCurrentWeapon(weapon.id);
-    soundManager.play(weapon.id === "rifle" ? "rifleFire" : "shotgunFire", { volume: 0.55 });
+    const fireSound = weapon.soundProfile === "shotgun" ? "shotgunFire" : weapon.soundProfile === "pistol" ? "pistolFire" : "rifleFire";
+    soundManager.play(fireSound, { volume: 0.55 });
 
     const { hits, tracerEnd } = fireWeapon(weapon, origin, dir, registry.all(), BOT_ID);
     effectsBus.emit({ kind: "tracer", from: [origin.x, origin.y, origin.z], to: [tracerEnd.x, tracerEnd.y, tracerEnd.z], color: "#ffb27a" });

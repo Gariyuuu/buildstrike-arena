@@ -1,4 +1,4 @@
-export type BotDifficulty = "easy" | "normal" | "hard";
+export type BotDifficulty = "easy" | "normal" | "hard" | "expert";
 
 export interface BotDifficultyConfig {
   aimAccuracy: number; // 0-1, higher = tighter aim toward target
@@ -41,5 +41,15 @@ export const BOT_DIFFICULTY: Record<BotDifficulty, BotDifficultyConfig> = {
     healThreshold: 0.55,
     moveSpeedMultiplier: 1.1,
     viewDistance: 40,
+  },
+  expert: {
+    aimAccuracy: 0.96,
+    reactionTime: 0.08,
+    fireDecisionInterval: 0.2,
+    aggression: 0.85,
+    buildLikelihood: 0.85,
+    healThreshold: 0.6,
+    moveSpeedMultiplier: 1.15,
+    viewDistance: 48,
   },
 };

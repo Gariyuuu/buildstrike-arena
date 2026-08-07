@@ -14,6 +14,7 @@ const DIFFICULTIES: { id: BotDifficulty; label: string; desc: string }[] = [
   { id: "easy", label: "Easy", desc: "Slower reactions, forgiving aim" },
   { id: "normal", label: "Normal", desc: "Balanced challenge" },
   { id: "hard", label: "Hard", desc: "Sharp aim, aggressive plays" },
+  { id: "expert", label: "Expert", desc: "Near-perfect aim, optimal weapon picks" },
 ];
 
 export function PlayTab() {
@@ -76,7 +77,7 @@ export function PlayTab() {
         <div className="flex flex-col gap-4">
           <div>
             <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-white/50">Bot difficulty</p>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-4 gap-2">
               {DIFFICULTIES.map((d) => (
                 <button
                   key={d.id}
