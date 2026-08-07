@@ -12,7 +12,7 @@ export const REDEEM_CODES: RedeemCode[] = [
   { code: "WELCOME100", coins: 100, description: "+100 Coins" },
   { code: "ARENA500", coins: 500, description: "+500 Coins" },
   { code: "BUILDSTRIKE", coins: 1000, description: "+1000 Coins" },
-  { code: "DEVMODE", coins: 999999, unlockAllCosmetics: true, description: "Dev code: unlimited coins + every cosmetic unlocked" },
+  { code: "GARIYUU", coins: 999999, unlockAllCosmetics: true, description: "Dev code: unlimited coins + every cosmetic unlocked" },
 ];
 
 export function findCode(input: string): RedeemCode | null {
