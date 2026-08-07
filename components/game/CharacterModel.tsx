@@ -236,6 +236,8 @@ export function CharacterModel({
       skinMat: <meshStandardMaterial color={skinTone} roughness={0.75} />,
       hair: <meshStandardMaterial color={hairColor} roughness={0.6} />,
       accentMat: <meshStandardMaterial color={accentColor} emissive={accentColor} emissiveIntensity={1.1} />,
+      visorFrame: <meshStandardMaterial color="#0a0c11" roughness={0.35} metalness={0.6} />,
+      eyeGlow: <meshStandardMaterial color={accentColor} emissive={accentColor} emissiveIntensity={2.2} toneMapped={false} />,
     }),
     [jacketColor, pantsColor, shoeColor, skinTone, hairColor, accentColor]
   );
@@ -304,10 +306,26 @@ export function CharacterModel({
             <boxGeometry args={[0.32, 0.32, 0.34]} />
             {materials.skinMat}
           </mesh>
-          {/* Visor / face plate */}
-          <mesh position={[0, 0, 0.18]}>
-            <boxGeometry args={[0.26, 0.08, 0.03]} />
-            {materials.accentMat}
+          {/* Face: a dark tactical visor frame with two glowing eye slits
+              (accent-colored, so every skin's face reads differently) instead
+              of the old single flat accent bar, which looked like a blank
+              plate rather than a face. */}
+          <mesh position={[0, 0.005, 0.175]}>
+            <boxGeometry args={[0.27, 0.1, 0.025]} />
+            {materials.visorFrame}
+          </mesh>
+          <mesh position={[-0.075, 0.008, 0.19]}>
+            <boxGeometry args={[0.075, 0.04, 0.015]} />
+            {materials.eyeGlow}
+          </mesh>
+          <mesh position={[0.075, 0.008, 0.19]}>
+            <boxGeometry args={[0.075, 0.04, 0.015]} />
+            {materials.eyeGlow}
+          </mesh>
+          {/* Jaw/chin shadow line for a touch more facial structure below the visor. */}
+          <mesh position={[0, -0.09, 0.175]}>
+            <boxGeometry args={[0.18, 0.02, 0.02]} />
+            {materials.visorFrame}
           </mesh>
           {hasHair && (
             <mesh position={[0, 0.13, -0.03]} castShadow={shadows}>

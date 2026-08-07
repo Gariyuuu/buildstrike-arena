@@ -5,6 +5,8 @@ import { useInventoryStore } from "@/stores/inventoryStore";
 import { usePlayerStore } from "@/stores/playerStore";
 import { SKINS, WEAPON_WRAPS, BACK_ACCESSORIES, EMOTES, BANNERS, ICONS, PICKAXES, RARITY_COLOR, type CosmeticCategory, type Rarity } from "@/game/config/cosmetics";
 import { soundManager } from "@/game/audio/soundManager";
+import { SkinIcon } from "@/components/ui/SkinIcon";
+import type { CharacterSkin } from "@/components/game/CharacterModel";
 
 interface LockerItem {
   id: string;
@@ -13,6 +15,7 @@ interface LockerItem {
   description: string;
   previewColor: string;
   glyph?: string;
+  skin?: CharacterSkin;
 }
 
 const CATEGORIES: { id: CosmeticCategory; label: string }[] = [
@@ -28,7 +31,7 @@ const CATEGORIES: { id: CosmeticCategory; label: string }[] = [
 function itemsForCategory(category: CosmeticCategory): LockerItem[] {
   switch (category) {
     case "skin":
-      return Object.values(SKINS).map((s) => ({ id: s.id, name: s.name, rarity: s.rarity, description: s.description, previewColor: s.skin.jacketColor ?? "#3aa0c9" }));
+      return Object.values(SKINS).map((s) => ({ id: s.id, name: s.name, rarity: s.rarity, description: s.description, previewColor: s.skin.jacketColor ?? "#3aa0c9", skin: s.skin }));
     case "weaponWrap":
       return Object.values(WEAPON_WRAPS).map((w) => ({ id: w.id, name: w.name, rarity: w.rarity, description: w.description, previewColor: w.bodyColor }));
     case "pickaxe":
@@ -112,7 +115,13 @@ export function LockerTab() {
                     }`}
                   >
                     <div className="flex h-14 w-14 items-center justify-center rounded-md" style={{ background: `radial-gradient(circle, ${item.previewColor}55, transparent 70%)` }}>
-                      {item.glyph ? <span className="text-xl">{item.glyph}</span> : <div className="h-8 w-8 rounded-sm" style={{ background: item.previewColor }} />}
+                      {item.skin ? (
+                        <SkinIcon skin={item.skin} size={44} />
+                      ) : item.glyph ? (
+                        <span className="text-xl">{item.glyph}</span>
+                      ) : (
+                        <div className="h-8 w-8 rounded-sm" style={{ background: item.previewColor }} />
+                      )}
                     </div>
                     <p className="truncate text-[11px] font-semibold text-white/80">{item.name}</p>
                     {isEquipped && <p className="text-[9px] font-bold uppercase text-bs-cyan">Equipped</p>}
@@ -125,6 +134,11 @@ export function LockerTab() {
 
         {active && (
           <div className="glass-panel w-full p-5 sm:w-72">
+            {active.skin && (
+              <div className="mb-3 flex justify-center rounded-lg bg-black/25 py-4">
+                <SkinIcon skin={active.skin} size={96} />
+              </div>
+            )}
             <p className="text-xs font-bold uppercase tracking-wider" style={{ color: RARITY_COLOR[active.rarity] }}>
               {active.rarity}
             </p>

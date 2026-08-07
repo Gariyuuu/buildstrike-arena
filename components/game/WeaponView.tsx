@@ -16,8 +16,10 @@ interface VisualPreset {
 
 const VISUAL_PRESETS: Record<WeaponVisual, VisualPreset> = {
   rifle: { body: [0.09, 0.1, 0.68], barrelLen: 0.42, barrelRadius: 0.025, barrelZ: 0.4, muzzleZ: 0.62, scope: false },
+  lmg: { body: [0.12, 0.14, 0.72], barrelLen: 0.46, barrelRadius: 0.032, barrelZ: 0.42, muzzleZ: 0.68, scope: false },
   shotgun: { body: [0.1, 0.12, 0.55], barrelLen: 0.35, barrelRadius: 0.045, barrelZ: 0.32, muzzleZ: 0.52, scope: false },
   pistol: { body: [0.07, 0.08, 0.32], barrelLen: 0.18, barrelRadius: 0.02, barrelZ: 0.2, muzzleZ: 0.32, scope: false },
+  revolver: { body: [0.08, 0.09, 0.26], barrelLen: 0.14, barrelRadius: 0.028, barrelZ: 0.16, muzzleZ: 0.26, scope: false },
   marksman: { body: [0.08, 0.09, 0.85], barrelLen: 0.55, barrelRadius: 0.022, barrelZ: 0.5, muzzleZ: 0.8, scope: true },
   // Not actually rendered by WeaponView — melee has its own dedicated
   // PickaxeView (see components/game/PickaxeView.tsx) — this entry exists
@@ -86,7 +88,8 @@ export function WeaponView({
     }
   });
 
-  const preset = VISUAL_PRESETS[WEAPONS[weapon].visual];
+  const visual = WEAPONS[weapon].visual;
+  const preset = VISUAL_PRESETS[visual];
   const bodyColor = wrapColors?.bodyColor ?? "#1b1f27";
   const barrelColor = wrapColors?.barrelColor ?? "#0e1116";
 
@@ -102,6 +105,13 @@ export function WeaponView({
         <cylinderGeometry args={[preset.barrelRadius, preset.barrelRadius, preset.barrelLen, 8]} />
         <meshStandardMaterial color={barrelColor} roughness={0.3} metalness={0.8} />
       </mesh>
+      {/* Cylinder drum (revolver only) */}
+      {visual === "revolver" && (
+        <mesh position={[0, 0, preset.barrelZ - 0.1]} rotation={[Math.PI / 2, 0, 0]}>
+          <cylinderGeometry args={[0.045, 0.045, 0.06, 6]} />
+          <meshStandardMaterial color={barrelColor} roughness={0.35} metalness={0.75} />
+        </mesh>
+      )}
       {/* Scope (marksman only) */}
       {preset.scope && (
         <mesh position={[0, 0.075, 0.15]}>

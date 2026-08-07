@@ -2,13 +2,13 @@
 
 import { useMemo } from "react";
 import { RigidBody } from "@react-three/rapier";
-import { Sky } from "@react-three/drei";
+import { Stars } from "@react-three/drei";
 import * as THREE from "three";
 import { ARENA, ARENA_DECOR } from "@/game/config/arena";
 import { ARENA_BOUNDS } from "@/game/config/movement";
 import { computeRamp } from "@/game/arena/ramp";
+import { createFloorGridTexture } from "@/game/rendering/proceduralTextures";
 
-const FLOOR_COLOR = "#151a24";
 const WALL_COLOR = "#0d3b45";
 const ACCENT_CYAN = "#33e6ff";
 const ACCENT_ORANGE = "#ff8a33";
@@ -20,17 +20,26 @@ export function Arena({ shadows }: { shadows: boolean }) {
 
   const southRamp = useMemo(() => computeRamp([0, 0, -6.2], [0, 3.3, -2]), []);
   const northRamp = useMemo(() => computeRamp([0, 0, 6.2], [0, 3.3, 2]), []);
+  // A stylized dark night-arena backdrop reads much better against the
+  // cyan/orange neon HUD than drei's <Sky> (a bright, physically-based
+  // daytime dome that clashed tonally with the rest of the game's look).
+  const floorTexture = useMemo(() => {
+    const tex = createFloorGridTexture();
+    tex.repeat.set(ARENA.floorSize / 4, ARENA.floorSize / 4);
+    return tex;
+  }, []);
 
   return (
     <group>
-      <Sky sunPosition={[60, 40, -30]} turbidity={2} rayleigh={0.6} mieCoefficient={0.02} mieDirectionalG={0.85} />
-      <fog attach="fog" args={["#0a0e17", 30, 95]} />
+      <color attach="background" args={["#060810"]} />
+      <Stars radius={140} depth={60} count={2500} factor={3.5} saturation={0} fade speed={0.4} />
+      <fog attach="fog" args={["#0a0e17", 24, 90]} />
 
-      <ambientLight intensity={0.55} color="#8fb8ff" />
+      <ambientLight intensity={0.5} color="#8fb8ff" />
       <directionalLight
         position={[24, 30, 12]}
-        intensity={1.4}
-        color="#fff2e0"
+        intensity={1.15}
+        color="#bcd4ff"
         castShadow={shadows}
         shadow-mapSize-width={shadows ? 2048 : 512}
         shadow-mapSize-height={shadows ? 2048 : 512}
@@ -48,7 +57,7 @@ export function Arena({ shadows }: { shadows: boolean }) {
       <RigidBody type="fixed" colliders="cuboid" position={[0, -0.25, 0]}>
         <mesh receiveShadow={shadows}>
           <boxGeometry args={[ARENA.floorSize, 0.5, ARENA.floorSize]} />
-          <meshStandardMaterial color={FLOOR_COLOR} roughness={0.85} metalness={0.15} />
+          <meshStandardMaterial map={floorTexture} color="#ffffff" roughness={0.8} metalness={0.2} />
         </mesh>
       </RigidBody>
       {/* Center floor accent cross */}

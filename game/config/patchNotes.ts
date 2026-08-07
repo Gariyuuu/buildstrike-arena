@@ -35,7 +35,7 @@ export const PATCH_NOTES: PatchNote[] = [
     title: "Melee & Emotes Update",
     date: "2026-08-06",
     highlights: [
-      "New melee tool: the Trench Pick — quick, low-damage, always available",
+      "New melee tool: the Pickaxe — quick, low-damage, always available",
       "8 equippable emotes — open the wheel with B in the Lobby, Training Arena, or after a round",
     ],
   },

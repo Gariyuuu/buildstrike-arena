@@ -1,4 +1,5 @@
 import { SKINS, WEAPON_WRAPS, BACK_ACCESSORIES, EMOTES, PICKAXES, DEFAULT_WRAP_ID, DEFAULT_PICKAXE_ID, type Rarity, type CosmeticCategory } from "@/game/config/cosmetics";
+import type { CharacterSkin } from "@/components/game/CharacterModel";
 
 export interface ShopItem {
   id: string;
@@ -7,6 +8,8 @@ export interface ShopItem {
   description: string;
   category: Extract<CosmeticCategory, "skin" | "weaponWrap" | "backAccessory" | "emote" | "pickaxe">;
   previewColor: string;
+  /** Full color set for skin-category items — lets the Shop/Locker render a real SkinIcon preview instead of a flat swatch. */
+  skin?: CharacterSkin;
 }
 
 const RARITY_PRICE: Record<Rarity, number> = {
@@ -26,7 +29,7 @@ export function fullShopPool(): ShopItem[] {
   const items: ShopItem[] = [];
   for (const s of Object.values(SKINS)) {
     if (s.unlock !== "shop") continue;
-    items.push({ id: s.id, name: s.name, rarity: s.rarity, description: s.description, category: "skin", previewColor: s.skin.jacketColor ?? "#3aa0c9" });
+    items.push({ id: s.id, name: s.name, rarity: s.rarity, description: s.description, category: "skin", previewColor: s.skin.jacketColor ?? "#3aa0c9", skin: s.skin });
   }
   for (const w of Object.values(WEAPON_WRAPS)) {
     if (w.id === DEFAULT_WRAP_ID) continue;

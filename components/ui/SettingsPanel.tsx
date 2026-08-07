@@ -1,9 +1,14 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useGameStore } from "@/stores/gameStore";
 import { useSettingsStore, type GraphicsQuality } from "@/stores/settingsStore";
+import { useKeybindsStore, KEYBIND_LABELS, formatKeyLabel, type KeybindAction } from "@/stores/keybindsStore";
+import { normalizeKey } from "@/hooks/useKeyboard";
 import type { BotDifficulty } from "@/game/config/bots";
 import { soundManager } from "@/game/audio/soundManager";
+import { RedeemCodePanel } from "@/components/ui/RedeemCodePanel";
+import { LobbyBackground } from "@/components/ui/LobbyBackground";
 
 function Slider({
   label,
@@ -41,6 +46,54 @@ function Slider({
   );
 }
 
+function KeybindButton({ action }: { action: KeybindAction }) {
+  const bound = useKeybindsStore((s) => s.binds[action]);
+  const setBind = useKeybindsStore((s) => s.setBind);
+  const [capturing, setCapturing] = useState(false);
+
+  useEffect(() => {
+    if (!capturing) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      e.preventDefault();
+      if (e.code === "Escape") {
+        setCapturing(false);
+        return;
+      }
+      setBind(action, normalizeKey(e));
+      setCapturing(false);
+    };
+    window.addEventListener("keydown", onKeyDown, { capture: true });
+    return () => window.removeEventListener("keydown", onKeyDown, { capture: true });
+  }, [capturing, action, setBind]);
+
+  return (
+    <div className="flex items-center justify-between rounded-lg bg-black/25 px-3 py-2 text-sm">
+      <span className="text-white/75">{KEYBIND_LABELS[action]}</span>
+      <button
+        onClick={() => setCapturing(true)}
+        className={`min-w-16 rounded-md border px-2 py-1 font-mono text-xs transition ${
+          capturing ? "border-bs-orange bg-bs-orange/15 text-bs-orange" : "border-white/15 bg-white/5 text-bs-cyan hover:border-bs-cyan/50"
+        }`}
+      >
+        {capturing ? "Press a key…" : formatKeyLabel(bound)}
+      </button>
+    </div>
+  );
+}
+
+const KEYBIND_ACTIONS: KeybindAction[] = [
+  "buildWall",
+  "buildFloor",
+  "buildRamp",
+  "toggleBuildMode",
+  "rotateBuild",
+  "reload",
+  "melee",
+  "sprint",
+  "jump",
+  "emoteWheel",
+];
+
 export function SettingsPanel({ onBack }: { onBack?: () => void }) {
   const setScreen = useGameStore((s) => s.setScreen);
   const s = useSettingsStore();
@@ -52,8 +105,9 @@ export function SettingsPanel({ onBack }: { onBack?: () => void }) {
   }
 
   return (
-    <div className="flex h-full w-full items-center justify-center overflow-y-auto bg-[radial-gradient(circle_at_50%_20%,#132033,transparent_60%),linear-gradient(180deg,#05070d,#0a0e17)] p-4">
-      <div className="glass-panel bs-pop-in w-full max-w-xl p-6">
+    <div className="relative flex h-full w-full items-center justify-center overflow-y-auto p-4">
+      <LobbyBackground />
+      <div className="glass-panel bs-pop-in relative w-full max-w-xl p-6">
         <h2 className="mb-5 text-2xl font-black text-white">Settings</h2>
 
         <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -116,6 +170,25 @@ export function SettingsPanel({ onBack }: { onBack?: () => void }) {
           <button className="btn-secondary ml-auto text-sm" onClick={requestFullscreen}>
             Toggle Fullscreen
           </button>
+        </div>
+
+        <div className="mb-6">
+          <div className="mb-2 flex items-center justify-between">
+            <p className="text-xs font-semibold uppercase tracking-wider text-white/50">Keybinds</p>
+            <button className="text-xs font-semibold text-bs-cyan hover:underline" onClick={() => useKeybindsStore.getState().reset()}>
+              Reset Keybinds
+            </button>
+          </div>
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            {KEYBIND_ACTIONS.map((action) => (
+              <KeybindButton key={action} action={action} />
+            ))}
+          </div>
+        </div>
+
+        <div className="mb-6">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-white/50">Redeem Code</p>
+          <RedeemCodePanel />
         </div>
 
         <div className="flex gap-3">

@@ -7,6 +7,7 @@ import { RARITY_COLOR, type CosmeticCategory } from "@/game/config/cosmetics";
 import { fullShopPool, priceFor, type ShopItem } from "@/game/shop/pool";
 import { pickForDate, msUntilNextRotation, formatCountdown } from "@/game/shop/rotation";
 import { soundManager } from "@/game/audio/soundManager";
+import { SkinIcon } from "@/components/ui/SkinIcon";
 
 const CATEGORY_LABEL: Record<ShopItem["category"] | "all", string> = {
   all: "All",
@@ -59,7 +60,7 @@ function ItemCard({ item }: { item: ShopItem }) {
   return (
     <div className="glass-panel flex flex-col items-center gap-2 p-4 text-center">
       <div className="flex h-16 w-16 items-center justify-center rounded-lg" style={{ background: `radial-gradient(circle, ${item.previewColor}55, transparent 70%)` }}>
-        <div className="h-9 w-9 rounded-sm" style={{ background: item.previewColor }} />
+        {item.category === "skin" && item.skin ? <SkinIcon skin={item.skin} size={48} /> : <div className="h-9 w-9 rounded-sm" style={{ background: item.previewColor }} />}
       </div>
       <p className="text-[10px] font-bold uppercase tracking-wider text-white/35">{CATEGORY_LABEL[item.category]}</p>
       <p className="text-xs font-bold uppercase" style={{ color: RARITY_COLOR[item.rarity] }}>

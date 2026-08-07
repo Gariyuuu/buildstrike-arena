@@ -1,22 +1,27 @@
 // Central weapon tuning. Edit values here to rebalance combat.
-// 8 weapons total: 3 primaries + 5 secondary-eligible. Every player in
-// competitive 1v1 has equal access to identical stats for a given weapon —
-// rarity (see game/config/cosmetics-adjacent weaponWrap skins) is purely
-// cosmetic and never touches these numbers.
+// 12 firearms + melee. Every player in competitive 1v1 has equal access to
+// identical stats for a given weapon — rarity (see game/config/cosmetics-
+// adjacent weaponWrap skins) is purely cosmetic and never touches these
+// numbers. Names are deliberately plain/generic (Assault Rifle, SMG, ...)
+// rather than stylized brand names — easier to tell apart at a glance.
 export type WeaponId =
   | "rifle"
   | "burstRifle"
+  | "battleRifle"
+  | "lmg"
   | "marksmanRifle"
   | "shotgun"
   | "tacticalShotgun"
   | "smg"
+  | "machinePistol"
   | "pistol"
   | "heavyPistol"
+  | "revolver"
   | "melee";
 
 export type WeaponClass = "primary" | "secondary" | "melee";
 /** Which rendering silhouette WeaponView uses — several weapons share a look. */
-export type WeaponVisual = "rifle" | "shotgun" | "pistol" | "marksman" | "melee";
+export type WeaponVisual = "rifle" | "lmg" | "shotgun" | "pistol" | "revolver" | "marksman" | "melee";
 /** Which synthesized sound archetype soundManager reuses for this weapon. */
 export type WeaponSoundProfile = "rifle" | "shotgun" | "pistol" | "melee";
 
@@ -44,7 +49,7 @@ export interface WeaponConfig {
 export const WEAPONS: Record<WeaponId, WeaponConfig> = {
   rifle: {
     id: "rifle",
-    name: "Volt Rifle",
+    name: "Assault Rifle",
     weaponClass: "primary",
     visual: "rifle",
     soundProfile: "rifle",
@@ -61,7 +66,7 @@ export const WEAPONS: Record<WeaponId, WeaponConfig> = {
   },
   burstRifle: {
     id: "burstRifle",
-    name: "Trinity Burst",
+    name: "Burst Rifle",
     weaponClass: "primary",
     visual: "rifle",
     soundProfile: "rifle",
@@ -78,9 +83,43 @@ export const WEAPONS: Record<WeaponId, WeaponConfig> = {
     recoil: 0.014,
     headshotMultiplier: 1.5,
   },
+  battleRifle: {
+    id: "battleRifle",
+    name: "Battle Rifle",
+    weaponClass: "primary",
+    visual: "rifle",
+    soundProfile: "rifle",
+    fireRate: 4,
+    automatic: false,
+    damage: 26,
+    pellets: 1,
+    spread: 0.008,
+    magazineSize: 20,
+    reloadTime: 1.9,
+    range: 140,
+    recoil: 0.02,
+    headshotMultiplier: 1.5,
+  },
+  lmg: {
+    id: "lmg",
+    name: "LMG",
+    weaponClass: "primary",
+    visual: "lmg",
+    soundProfile: "rifle",
+    fireRate: 11,
+    automatic: true,
+    damage: 14,
+    pellets: 1,
+    spread: 0.02,
+    magazineSize: 75,
+    reloadTime: 3.2,
+    range: 90,
+    recoil: 0.016,
+    headshotMultiplier: 1.3,
+  },
   marksmanRifle: {
     id: "marksmanRifle",
-    name: "Ridgeback DMR",
+    name: "Sniper Rifle",
     weaponClass: "primary",
     visual: "marksman",
     soundProfile: "rifle",
@@ -97,7 +136,7 @@ export const WEAPONS: Record<WeaponId, WeaponConfig> = {
   },
   shotgun: {
     id: "shotgun",
-    name: "Ridgeline Scattergun",
+    name: "Shotgun",
     weaponClass: "secondary",
     visual: "shotgun",
     soundProfile: "shotgun",
@@ -114,7 +153,7 @@ export const WEAPONS: Record<WeaponId, WeaponConfig> = {
   },
   tacticalShotgun: {
     id: "tacticalShotgun",
-    name: "Sweeper-12",
+    name: "Tactical Shotgun",
     weaponClass: "secondary",
     visual: "shotgun",
     soundProfile: "shotgun",
@@ -131,7 +170,7 @@ export const WEAPONS: Record<WeaponId, WeaponConfig> = {
   },
   smg: {
     id: "smg",
-    name: "Wasp SMG",
+    name: "SMG",
     weaponClass: "secondary",
     visual: "rifle",
     soundProfile: "rifle",
@@ -146,9 +185,26 @@ export const WEAPONS: Record<WeaponId, WeaponConfig> = {
     recoil: 0.009,
     headshotMultiplier: 1.4,
   },
+  machinePistol: {
+    id: "machinePistol",
+    name: "Machine Pistol",
+    weaponClass: "secondary",
+    visual: "pistol",
+    soundProfile: "pistol",
+    fireRate: 14,
+    automatic: true,
+    damage: 9,
+    pellets: 1,
+    spread: 0.03,
+    magazineSize: 28,
+    reloadTime: 1.3,
+    range: 35,
+    recoil: 0.008,
+    headshotMultiplier: 1.3,
+  },
   pistol: {
     id: "pistol",
-    name: "Sidearm-9",
+    name: "Pistol",
     weaponClass: "secondary",
     visual: "pistol",
     soundProfile: "pistol",
@@ -165,7 +221,7 @@ export const WEAPONS: Record<WeaponId, WeaponConfig> = {
   },
   heavyPistol: {
     id: "heavyPistol",
-    name: "Marshal .50",
+    name: "Heavy Pistol",
     weaponClass: "secondary",
     visual: "pistol",
     soundProfile: "pistol",
@@ -180,6 +236,23 @@ export const WEAPONS: Record<WeaponId, WeaponConfig> = {
     recoil: 0.045,
     headshotMultiplier: 1.5,
   },
+  revolver: {
+    id: "revolver",
+    name: "Revolver",
+    weaponClass: "secondary",
+    visual: "revolver",
+    soundProfile: "pistol",
+    fireRate: 1.6,
+    automatic: false,
+    damage: 48,
+    pellets: 1,
+    spread: 0.01,
+    magazineSize: 6,
+    reloadTime: 2.0,
+    range: 65,
+    recoil: 0.05,
+    headshotMultiplier: 1.5,
+  },
   // Always available, not part of the primary/secondary loadout (see
   // MELEE_CONFIG / LocalPlayer's dedicated performMeleeAttack — it doesn't
   // go through the ammo/reload pipeline at all). Kept as a real WeaponId
@@ -190,7 +263,7 @@ export const WEAPONS: Record<WeaponId, WeaponConfig> = {
   // firearms").
   melee: {
     id: "melee",
-    name: "Trench Pick",
+    name: "Pickaxe",
     weaponClass: "melee",
     visual: "melee",
     soundProfile: "melee",
@@ -209,16 +282,20 @@ export const WEAPONS: Record<WeaponId, WeaponConfig> = {
 
 export const MELEE_ID: WeaponId = "melee";
 
-/** All 8 weapon ids in a canonical display order — for loadout-selector/reference UI, NOT what's equipped in a match (see loadoutStore for that). */
+/** All 12 firearm ids in a canonical display order — for loadout-selector/reference UI, NOT what's equipped in a match (see loadoutStore for that). */
 export const WEAPON_ORDER: WeaponId[] = [
   "rifle",
   "burstRifle",
+  "battleRifle",
+  "lmg",
   "marksmanRifle",
   "shotgun",
   "tacticalShotgun",
   "smg",
+  "machinePistol",
   "pistol",
   "heavyPistol",
+  "revolver",
 ];
 
 export const PRIMARY_WEAPONS: WeaponId[] = WEAPON_ORDER.filter((id) => WEAPONS[id].weaponClass === "primary");

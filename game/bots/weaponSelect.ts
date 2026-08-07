@@ -7,10 +7,10 @@ import type { BotDifficulty } from "@/game/config/bots";
 // with no visible weapon model; see the VISUAL_PRESETS placeholder note in
 // WeaponView.tsx). Every other firearm from WEAPON_ORDER is in play.
 function idealWeaponsForDistance(distance: number): WeaponId[] {
-  if (distance < 9) return ["shotgun", "tacticalShotgun", "smg"];
-  if (distance < 16) return ["smg", "rifle", "pistol"];
-  if (distance < 24) return ["rifle", "burstRifle", "heavyPistol"];
-  return ["marksmanRifle", "burstRifle", "rifle"];
+  if (distance < 9) return ["shotgun", "tacticalShotgun", "smg", "machinePistol"];
+  if (distance < 16) return ["smg", "rifle", "lmg", "pistol", "revolver"];
+  if (distance < 24) return ["rifle", "burstRifle", "battleRifle", "lmg", "heavyPistol"];
+  return ["marksmanRifle", "battleRifle", "burstRifle", "rifle"];
 }
 
 // Chance a bot picks from the ideal band for its range vs. a random weapon

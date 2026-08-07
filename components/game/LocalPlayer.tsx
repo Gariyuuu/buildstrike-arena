@@ -25,6 +25,7 @@ import { usePlayerStore, type HudState } from "@/stores/playerStore";
 import { useMatchStore } from "@/stores/matchStore";
 import { useGameStore } from "@/stores/gameStore";
 import { useNetworkStore } from "@/stores/networkStore";
+import { useKeybindsStore } from "@/stores/keybindsStore";
 import { useBuildsStore } from "@/stores/buildsStore";
 import { useSettingsStore } from "@/stores/settingsStore";
 import { useProfileStore } from "@/stores/profileStore";
@@ -39,7 +40,6 @@ import { WeaponView } from "@/components/game/WeaponView";
 import { PickaxeView } from "@/components/game/PickaxeView";
 import { BuildGhost, type BuildGhostState } from "@/components/game/BuildGhost";
 
-const BUILD_KEYS: Record<string, BuildKind> = { z: "wall", x: "floor", c: "ramp" };
 const LOCAL_ID = "local-player";
 const UP = new THREE.Vector3(0, 1, 0);
 
@@ -222,6 +222,9 @@ export function LocalPlayer({
               ? "reload"
               : weaponArmPose(local.weapon);
 
+    const binds = useKeybindsStore.getState().binds;
+    const buildKeyMap: Record<string, BuildKind> = { [binds.buildWall]: "wall", [binds.buildFloor]: "floor", [binds.buildRamp]: "ramp" };
+
     if (!paused && !local.isDead) {
       if (combatActive) {
         const { primary, secondary } = useLoadoutStore.getState();
@@ -235,21 +238,21 @@ export function LocalPlayer({
           const nextIdx = (curIdx + (mouseEdges.wheelDelta > 0 ? 1 : -1) + itemOrder.length) % itemOrder.length;
           selectItem(itemOrder[nextIdx]);
         }
-        if (justPressed.includes("q")) {
+        if (justPressed.includes(binds.toggleBuildMode)) {
           usePlayerStore.getState().setLocal({ isBuildMode: !local.isBuildMode });
         }
         for (const key of justPressed) {
-          if (BUILD_KEYS[key]) {
-            usePlayerStore.getState().setLocal({ isBuildMode: true, buildKind: BUILD_KEYS[key] });
+          if (buildKeyMap[key]) {
+            usePlayerStore.getState().setLocal({ isBuildMode: true, buildKind: buildKeyMap[key] });
           }
         }
-        if (justPressed.includes("f") && local.isBuildMode) {
+        if (justPressed.includes(binds.rotateBuild) && local.isBuildMode) {
           ghost.current.rotationY = (ghost.current.rotationY + Math.PI / 2) % (Math.PI * 2);
         }
-        if (justPressed.includes("r") && !local.isBuildMode) {
+        if (justPressed.includes(binds.reload) && !local.isBuildMode) {
           tryReload();
         }
-        if (justPressed.includes("v")) {
+        if (justPressed.includes(binds.melee)) {
           performMeleeAttack(camera.position as THREE.Vector3, forward);
         }
       }
@@ -259,7 +262,7 @@ export function LocalPlayer({
       if (combatActive) {
         const inputZ = (keyboard.current.pressed.has("w") ? 1 : 0) - (keyboard.current.pressed.has("s") ? 1 : 0);
         const inputX = (keyboard.current.pressed.has("d") ? 1 : 0) - (keyboard.current.pressed.has("a") ? 1 : 0);
-        const sprinting = keyboard.current.pressed.has("shift") && inputZ > 0;
+        const sprinting = keyboard.current.pressed.has(binds.sprint) && inputZ > 0;
         const moveDir = new THREE.Vector3().addScaledVector(right, inputX).addScaledVector(forwardFlat, inputZ);
         if (moveDir.lengthSq() > 0) moveDir.normalize();
 
@@ -267,7 +270,7 @@ export function LocalPlayer({
         const control = grounded.current ? 1 : MOVEMENT.airControl;
         speedFrac = moveDir.length() * (sprinting ? 1 : 0.72);
 
-        if (grounded.current && justPressed.includes(" ")) {
+        if (grounded.current && justPressed.includes(binds.jump)) {
           velocityY.current = MOVEMENT.jumpVelocity;
           soundManager.play("jump");
         } else if (grounded.current) {

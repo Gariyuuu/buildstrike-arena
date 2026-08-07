@@ -45,7 +45,11 @@ export function useKeyboard(enabled: boolean = true) {
   return state;
 }
 
-function normalizeKey(e: KeyboardEvent): string {
+/** Exported so the keybind-rebinding UI and any raw (non-hook) keydown
+ * listeners (see HUD.tsx's emote-wheel key) use the exact same key-string
+ * format as this hook's pressed/justPressed sets — otherwise a key captured
+ * in Settings would never match what the game loop checks for. */
+export function normalizeKey(e: KeyboardEvent): string {
   if (e.code.startsWith("Key")) return e.code.slice(3).toLowerCase();
   if (e.code.startsWith("Digit")) return e.code.slice(5);
   if (e.code.startsWith("Shift")) return "shift";

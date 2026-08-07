@@ -12,6 +12,8 @@ import { MatchResults } from "@/components/ui/MatchResults";
 import { OnlineLobbyOverlay } from "@/components/ui/OnlineLobbyOverlay";
 import { ConnectionStatus } from "@/components/ui/ConnectionStatus";
 import { EmoteWheel } from "@/components/ui/EmoteWheel";
+import { useKeybindsStore } from "@/stores/keybindsStore";
+import { normalizeKey } from "@/hooks/useKeyboard";
 
 export function HUD({ domElement }: { domElement: React.RefObject<HTMLDivElement | null> }) {
   const mode = useGameStore((s) => s.mode);
@@ -42,7 +44,7 @@ export function HUD({ domElement }: { domElement: React.RefObject<HTMLDivElement
         if (next && document.pointerLockElement) document.exitPointerLock();
         return;
       }
-      if (e.code === "KeyB") {
+      if (normalizeKey(e) === useKeybindsStore.getState().binds.emoteWheel) {
         if (showLobby || showResults || paused || !canEmote) return;
         setEmoteWheelOpen((v) => !v);
         if (document.pointerLockElement) document.exitPointerLock();
