@@ -25,12 +25,17 @@ export interface ProfileStats {
   currentWinStreak: number;
   highestWinStreak: number;
   weaponDamage: Record<string, number>;
+  buildsPlaced: number;
+  healsUsed: number;
+  /** True once the player has won a match without using a single healing item — feeds the "Win Without Healing" achievement. */
+  hasWonWithoutHealing: boolean;
 }
 
 interface MatchResultInput {
   won: boolean;
   eliminations: number;
   damage: number;
+  healedThisMatch: boolean;
 }
 
 interface MatchResultOutcome {
@@ -58,6 +63,8 @@ interface ProfileState {
   addCoins: (amount: number) => void;
   spendCoins: (amount: number) => boolean;
   addWeaponDamage: (weaponId: string, amount: number) => void;
+  addBuildPlaced: () => void;
+  addHealUsed: () => void;
   recordMatchResult: (input: MatchResultInput) => MatchResultOutcome;
   canClaimDailyReward: () => boolean;
   claimDailyReward: () => DailyReward | null;
@@ -73,6 +80,9 @@ const initialStats: ProfileStats = {
   currentWinStreak: 0,
   highestWinStreak: 0,
   weaponDamage: {},
+  buildsPlaced: 0,
+  healsUsed: 0,
+  hasWonWithoutHealing: false,
 };
 
 function freshState() {
@@ -124,7 +134,10 @@ export const useProfileStore = create<ProfileState>()(
           },
         })),
 
-      recordMatchResult: ({ won, eliminations, damage }) => {
+      addBuildPlaced: () => set((s) => ({ stats: { ...s.stats, buildsPlaced: s.stats.buildsPlaced + 1 } })),
+      addHealUsed: () => set((s) => ({ stats: { ...s.stats, healsUsed: s.stats.healsUsed + 1 } })),
+
+      recordMatchResult: ({ won, eliminations, damage, healedThisMatch }) => {
         const today = todayKey();
         const firstWinOfDay = won && get().lastWinDate !== today;
 
@@ -149,6 +162,7 @@ export const useProfileStore = create<ProfileState>()(
               totalDamage: s.stats.totalDamage + damage,
               currentWinStreak: nextStreak,
               highestWinStreak: Math.max(s.stats.highestWinStreak, nextStreak),
+              hasWonWithoutHealing: s.stats.hasWonWithoutHealing || (won && !healedThisMatch),
             },
             lastWinDate: firstWinOfDay ? today : s.lastWinDate,
             coins: s.coins + coinsGained,

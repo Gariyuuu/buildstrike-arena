@@ -3,8 +3,10 @@
 import { useState } from "react";
 import { useProfileStore } from "@/stores/profileStore";
 import { useInventoryStore } from "@/stores/inventoryStore";
+import { useAchievementStore } from "@/stores/achievementStore";
 import { BANNERS, ICONS } from "@/game/config/cosmetics";
 import { WEAPONS, type WeaponId } from "@/game/config/weapons";
+import { ACHIEVEMENTS } from "@/game/config/achievements";
 import { soundManager } from "@/game/audio/soundManager";
 
 function StatCard({ label, value }: { label: string; value: string | number }) {
@@ -25,6 +27,7 @@ export function ProfileTab() {
   const setDisplayName = useProfileStore((s) => s.setDisplayName);
   const bannerId = useInventoryStore((s) => s.equipped.banner);
   const iconId = useInventoryStore((s) => s.equipped.icon);
+  const unlockedAchievements = useAchievementStore((s) => s.unlocked);
   const [name, setName] = useState(displayName);
 
   const winRate = stats.matchesPlayed > 0 ? Math.round((stats.wins / stats.matchesPlayed) * 100) : 0;
@@ -72,6 +75,27 @@ export function ProfileTab() {
       <div className="grid grid-cols-2 gap-3">
         <StatCard label="Coins" value={coins.toLocaleString()} />
         <StatCard label="Favorite Weapon" value={favoriteWeapon} />
+      </div>
+
+      <div>
+        <p className="mb-2 text-xs font-bold uppercase tracking-wider text-white/40">
+          Achievements ({unlockedAchievements.length}/{ACHIEVEMENTS.length})
+        </p>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+          {ACHIEVEMENTS.map((a) => {
+            const unlocked = unlockedAchievements.includes(a.id);
+            return (
+              <div
+                key={a.id}
+                title={a.description}
+                className={`rounded-lg border p-3 ${unlocked ? "border-bs-orange/40 bg-bs-orange/10" : "border-white/5 bg-black/20 opacity-50"}`}
+              >
+                <p className={`text-xs font-bold ${unlocked ? "text-bs-orange" : "text-white/50"}`}>{a.name}</p>
+                <p className="mt-0.5 text-[10px] text-white/40">{a.description}</p>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

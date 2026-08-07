@@ -30,6 +30,7 @@ import { useSettingsStore } from "@/stores/settingsStore";
 import { useProfileStore } from "@/stores/profileStore";
 import { useLoadoutStore } from "@/stores/loadoutStore";
 import { useInventoryStore } from "@/stores/inventoryStore";
+import { useQuestStore } from "@/stores/questStore";
 import { SKINS, WEAPON_WRAPS, BACK_ACCESSORIES, DEFAULT_SKIN_ID, DEFAULT_WRAP_ID } from "@/game/config/cosmetics";
 import type { GameAdapter, Vec3 } from "@/game/networking/adapter";
 import { CharacterModel } from "@/components/game/CharacterModel";
@@ -586,6 +587,9 @@ export function LocalPlayer({
     }
     healStartedItem.current = null;
     adapter.reportHeal(item, "complete");
+    useProfileStore.getState().addHealUsed();
+    useQuestStore.getState().addProgress("healsUsed", 1);
+    useMatchStore.getState().markHealedThisMatch();
   }
 
   function cancelHeal() {

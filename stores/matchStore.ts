@@ -18,6 +18,9 @@ interface MatchState {
   /** Cumulative damage the local player has dealt this match (persists across rounds, resets on a new match/rematch) — used for profile XP/stat tracking. */
   damageDealt: number;
   addDamageDealt: (amount: number) => void;
+  /** True if the local player has used any healing item this match — feeds the "Win Without Healing" achievement. */
+  healedThisMatch: boolean;
+  markHealedThisMatch: () => void;
   startMatch: () => void;
   setCountdown: (value: number) => void;
   beginCombat: () => void;
@@ -44,11 +47,13 @@ const initial = {
   opponentDisconnected: false,
   resetSignal: 0,
   damageDealt: 0,
+  healedThisMatch: false,
 };
 
 export const useMatchStore = create<MatchState>((set, get) => ({
   ...initial,
   addDamageDealt: (amount) => set((s) => ({ damageDealt: s.damageDealt + Math.max(0, amount) })),
+  markHealedThisMatch: () => set({ healedThisMatch: true }),
   startMatch: () =>
     set((s) => ({
       ...initial,
@@ -80,7 +85,7 @@ export const useMatchStore = create<MatchState>((set, get) => ({
     })),
   manualReset: () => set((s) => ({ resetSignal: s.resetSignal + 1 })),
   setOpponentDisconnected: (v) => set({ opponentDisconnected: v }),
-  reset: () => set({ ...initial, score: { local: 0, opponent: 0 }, damageDealt: 0 }),
+  reset: () => set({ ...initial, score: { local: 0, opponent: 0 }, damageDealt: 0, healedThisMatch: false }),
   applyServerRoundEnd: (winner, score) => {
     const matchWinner = score[winner] >= MATCH_CONFIG.roundsToWin ? winner : null;
     set({ score, roundWinner: winner, phase: matchWinner ? "match-end" : "round-end", matchWinner });
@@ -99,6 +104,7 @@ export const useMatchStore = create<MatchState>((set, get) => ({
       round: isNewMatch ? 1 : s.round,
       score: isNewMatch ? { local: 0, opponent: 0 } : s.score,
       damageDealt: isNewMatch ? 0 : s.damageDealt,
+      healedThisMatch: isNewMatch ? false : s.healedThisMatch,
       roundWinner: null,
       matchWinner: null,
       resetSignal: s.resetSignal + 1,

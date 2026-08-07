@@ -7,6 +7,8 @@ import { usePlayerStore } from "@/stores/playerStore";
 import { useBuildsStore } from "@/stores/buildsStore";
 import { useNetworkStore } from "@/stores/networkStore";
 import { useProfileStore } from "@/stores/profileStore";
+import { useQuestStore } from "@/stores/questStore";
+import { useAchievementStore } from "@/stores/achievementStore";
 import { getActiveClient } from "@/game/networking/activeClient";
 import { soundManager } from "@/game/audio/soundManager";
 
@@ -27,15 +29,25 @@ export function MatchResults() {
   useEffect(() => {
     if (awarded.current) return;
     awarded.current = true;
+    const damage = Math.round(useMatchStore.getState().damageDealt);
     const outcome = useProfileStore.getState().recordMatchResult({
       won,
       eliminations: score.local,
-      damage: Math.round(useMatchStore.getState().damageDealt),
+      damage,
+      healedThisMatch: useMatchStore.getState().healedThisMatch,
     });
     setReward(outcome);
     if (outcome.leveledUp) {
       setTimeout(() => soundManager.play("levelUp"), 500);
     }
+
+    const quests = useQuestStore.getState();
+    quests.ensureToday();
+    quests.addProgress("matchesPlayed", 1);
+    quests.addProgress("damage", damage);
+    quests.addProgress("eliminations", score.local);
+    if (won) quests.addProgress("wins", 1);
+    useAchievementStore.getState().checkAchievements();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
