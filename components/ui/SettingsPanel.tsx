@@ -8,7 +8,6 @@ import { normalizeKey } from "@/hooks/useKeyboard";
 import type { BotDifficulty } from "@/game/config/bots";
 import { soundManager } from "@/game/audio/soundManager";
 import { RedeemCodePanel } from "@/components/ui/RedeemCodePanel";
-import { LobbyBackground } from "@/components/ui/LobbyBackground";
 
 function Slider({
   label,
@@ -106,8 +105,7 @@ export function SettingsPanel({ onBack }: { onBack?: () => void }) {
   }
 
   return (
-    <div className="relative flex h-full w-full items-center justify-center overflow-y-auto p-4">
-      <LobbyBackground />
+    <div className="relative flex h-full w-full items-center justify-center overflow-y-auto bg-[radial-gradient(circle_at_50%_20%,#132033,transparent_60%),linear-gradient(180deg,#05070d,#0a0e17)] p-4">
       <div className="glass-panel bs-pop-in relative w-full max-w-xl p-6">
         <h2 className="mb-5 text-2xl font-black text-white">Settings</h2>
 

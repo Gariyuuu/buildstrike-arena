@@ -13,7 +13,6 @@ import { ShopTab } from "@/components/ui/lobby/ShopTab";
 import { QuestsTab } from "@/components/ui/lobby/QuestsTab";
 import { ProfileTab } from "@/components/ui/lobby/ProfileTab";
 import { DailyRewardModal } from "@/components/ui/lobby/DailyRewardModal";
-import { LobbyBackground } from "@/components/ui/LobbyBackground";
 
 type LobbyTab = "play" | "locker" | "shop" | "quests" | "profile";
 
@@ -50,8 +49,7 @@ export function Lobby() {
   const xpFrac = xpForNextLevel > 0 ? Math.min(1, xpIntoLevel / xpForNextLevel) : 1;
 
   return (
-    <div className="relative flex h-full w-full flex-col overflow-hidden">
-      <LobbyBackground />
+    <div className="relative flex h-full w-full flex-col overflow-hidden bg-[radial-gradient(circle_at_50%_10%,#132033,transparent_60%),linear-gradient(180deg,#05070d,#0a0e17)]">
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 px-5 py-3">
         <div className="flex items-center gap-3">

@@ -3,7 +3,6 @@
 import { useGameStore } from "@/stores/gameStore";
 import { soundManager } from "@/game/audio/soundManager";
 import { useKeybindsStore, formatKeyLabel } from "@/stores/keybindsStore";
-import { LobbyBackground } from "@/components/ui/LobbyBackground";
 
 export function InstructionsModal() {
   const setScreen = useGameStore((s) => s.setScreen);
@@ -34,8 +33,7 @@ export function InstructionsModal() {
   }
 
   return (
-    <div className="relative flex h-full w-full items-center justify-center p-4">
-      <LobbyBackground />
+    <div className="relative flex h-full w-full items-center justify-center bg-[radial-gradient(circle_at_50%_20%,#132033,transparent_60%),linear-gradient(180deg,#05070d,#0a0e17)] p-4">
       <div className="glass-panel bs-pop-in relative w-full max-w-2xl p-6">
         <h2 className="mb-1 text-2xl font-black text-white">How to Play</h2>
         <p className="mb-5 text-sm text-white/60">
