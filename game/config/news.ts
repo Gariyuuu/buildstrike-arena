@@ -8,21 +8,33 @@ export interface NewsItem {
 // Stored locally for now — see TASKS.md if this ever needs to move to a CMS.
 export const NEWS_ITEMS: NewsItem[] = [
   {
-    id: "lobby-update",
-    title: "The Lobby Update Is Here",
-    body: "A brand new hub, character progression, Arena Coins, and 8 starter skins in the Shop.",
+    id: "match-setup-update",
+    title: "Match Setup Update Is Here",
+    body: "See your opponent's loadout before you ready up, and hosts can now set rounds-to-win plus toggle headshots, healing, and infinite builds.",
     tag: "update",
   },
   {
-    id: "more-weapons-soon",
-    title: "Full Arsenal Incoming",
-    body: "Burst rifle, SMG, pistols, and marksman rifle are on the way — every player will always have equal access in competitive 1v1.",
-    tag: "coming-soon",
+    id: "expert-bots",
+    title: "Expert Bot Difficulty Added",
+    body: "Bots now draw from the full 8-weapon arsenal and pick the right tool for the range. Expert difficulty barely misses.",
+    tag: "update",
   },
   {
-    id: "quests-soon",
-    title: "Daily Quests — Coming Soon",
-    body: "Rotating daily objectives with XP and coin rewards are in development.",
+    id: "quests-live",
+    title: "Daily Quests & Achievements Are Live",
+    body: "3 rotating daily objectives and 22 achievements to track in your Profile — earn XP and Coins as you play.",
+    tag: "update",
+  },
+  {
+    id: "full-arsenal",
+    title: "Full Arsenal Shipped",
+    body: "Burst rifle, marksman rifle, tactical shotgun, SMG, and heavy pistol are all live. Every player always has equal access in competitive 1v1.",
+    tag: "weapon",
+  },
+  {
+    id: "more-to-come",
+    title: "More In Development",
+    body: "New arenas and modes are in the works.",
     tag: "coming-soon",
   },
 ];
