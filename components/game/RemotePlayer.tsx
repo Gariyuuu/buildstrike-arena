@@ -11,8 +11,8 @@ import { soundManager } from "@/game/audio/soundManager";
 import { CharacterModel } from "@/components/game/CharacterModel";
 import { WeaponView } from "@/components/game/WeaponView";
 import type { OpponentStateMsg, OpponentFiredMsg } from "@/game/networking/types";
-import type { WeaponId } from "@/game/config/weapons";
-import type { ArmPoseId } from "@/game/animation/pose";
+import { WEAPONS, type WeaponId } from "@/game/config/weapons";
+import { weaponArmPose, type ArmPoseId } from "@/game/animation/pose";
 import { usePlayerStore } from "@/stores/playerStore";
 
 const REMOTE_ID = "remote-player";
@@ -74,7 +74,7 @@ export function RemotePlayer({
       const targetQuatY = net.rotationY;
       group.current.rotation.y = THREE.MathUtils.damp(group.current.rotation.y, targetQuatY, MOVEMENT.turnSmoothing, dt);
       if (net.weapon !== currentWeapon) setCurrentWeapon(net.weapon);
-      armPoseRef.current = net.isBuildMode ? "build" : net.weapon;
+      armPoseRef.current = net.isBuildMode ? "build" : weaponArmPose(net.weapon);
       positionTracker.opponent.set(lastPos.current.x, lastPos.current.y, lastPos.current.z);
     }
 
@@ -85,7 +85,8 @@ export function RemotePlayer({
     if (fireEvent && fireEvent !== lastFireSeen.current) {
       lastFireSeen.current = fireEvent;
       fireFlashRef.current = performance.now();
-      soundManager.play(fireEvent.weapon === "rifle" ? "rifleFire" : "shotgunFire", { volume: 0.6 });
+      const soundProfile = WEAPONS[fireEvent.weapon].soundProfile;
+      soundManager.play(soundProfile === "shotgun" ? "shotgunFire" : soundProfile === "pistol" ? "pistolFire" : "rifleFire", { volume: 0.6 });
       const muzzle = new THREE.Vector3(...fireEvent.origin).addScaledVector(new THREE.Vector3(...fireEvent.direction), 0.6);
       const end = new THREE.Vector3(...fireEvent.origin).addScaledVector(new THREE.Vector3(...fireEvent.direction), 40);
       effectsBus.emit({ kind: "tracer", from: [muzzle.x, muzzle.y, muzzle.z], to: [end.x, end.y, end.z], color: "#ffb27a" });

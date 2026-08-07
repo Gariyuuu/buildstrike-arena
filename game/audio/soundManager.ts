@@ -7,6 +7,7 @@
 type SoundId =
   | "rifleFire"
   | "shotgunFire"
+  | "pistolFire"
   | "reload"
   | "hitConfirm"
   | "takeDamage"
@@ -90,6 +91,10 @@ class SoundManager {
       case "shotgunFire":
         this.playPercussiveTone(ctx, 90 * pitch, 0.14, "sawtooth", vol * 0.7);
         this.playNoiseBurst(ctx, 0.18, vol * 0.6);
+        break;
+      case "pistolFire":
+        this.playPercussiveTone(ctx, 260 * pitch, 0.05, "square", vol * 0.45);
+        this.playNoiseBurst(ctx, 0.035, vol * 0.3);
         break;
       case "reload":
         this.playClick(ctx, 900, 0.03, vol * 0.5);

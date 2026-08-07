@@ -24,7 +24,7 @@ import { usePlayerStore } from "@/stores/playerStore";
 import { useMatchStore } from "@/stores/matchStore";
 import { useBuildsStore } from "@/stores/buildsStore";
 import { CharacterModel } from "@/components/game/CharacterModel";
-import type { ArmPoseId } from "@/game/animation/pose";
+import { weaponArmPose, type ArmPoseId } from "@/game/animation/pose";
 import { WeaponView } from "@/components/game/WeaponView";
 import type { Vec3 } from "@/game/networking/adapter";
 
@@ -147,7 +147,7 @@ export function BotPlayer({ difficulty, spawn }: { difficulty: BotDifficulty; sp
     };
 
     const intent = brain.update(dt, perception, now / 1000);
-    armPoseRef.current = healItem.current ? (healItem.current === "shieldPotion" ? "shield" : "heal") : currentWeapon;
+    armPoseRef.current = healItem.current ? (healItem.current === "shieldPotion" ? "shield" : "heal") : weaponArmPose(currentWeapon);
 
     // ---- Healing ----
     if (intent.wantsToHeal) {

@@ -27,13 +27,13 @@ import { useNetworkStore } from "@/stores/networkStore";
 import { useBuildsStore } from "@/stores/buildsStore";
 import { useSettingsStore } from "@/stores/settingsStore";
 import { useProfileStore } from "@/stores/profileStore";
+import { useLoadoutStore } from "@/stores/loadoutStore";
 import type { GameAdapter, Vec3 } from "@/game/networking/adapter";
 import { CharacterModel } from "@/components/game/CharacterModel";
-import type { ArmPoseId } from "@/game/animation/pose";
+import { weaponArmPose, type ArmPoseId } from "@/game/animation/pose";
 import { WeaponView } from "@/components/game/WeaponView";
 import { BuildGhost, type BuildGhostState } from "@/components/game/BuildGhost";
 
-const ITEM_ORDER: (WeaponId | HealingItemId)[] = ["rifle", "shotgun", "shieldPotion", "medkit"];
 const BUILD_KEYS: Record<string, BuildKind> = { z: "wall", x: "floor", c: "ramp" };
 const LOCAL_ID = "local-player";
 const UP = new THREE.Vector3(0, 1, 0);
@@ -70,6 +70,7 @@ export function LocalPlayer({
   const isAiming = useRef(false);
 
   const nextFireTime = useRef(0);
+  const burstShotsRemaining = useRef(0);
   const reloadEndTime = useRef(0);
   const placementCooldownEnd = useRef(0);
   const healEndTime = useRef(0);
@@ -192,17 +193,20 @@ export function LocalPlayer({
         ? "build"
         : local.isReloading
           ? "reload"
-          : local.weapon;
+          : weaponArmPose(local.weapon);
 
     if (!paused && !local.isDead) {
       if (combatActive) {
-        if (justPressed.includes("1")) selectItem("rifle");
-        if (justPressed.includes("2")) selectItem("shotgun");
+        const { primary, secondary } = useLoadoutStore.getState();
+        const itemOrder: (WeaponId | HealingItemId)[] = [primary, secondary, "shieldPotion", "medkit"];
+        if (justPressed.includes("1")) selectItem(primary);
+        if (justPressed.includes("2")) selectItem(secondary);
         if (justPressed.includes("3")) selectItem("shieldPotion");
+        if (justPressed.includes("4")) selectItem("medkit");
         if (mouseEdges.wheelDelta !== 0) {
-          const curIdx = ITEM_ORDER.indexOf(local.selected);
-          const nextIdx = (curIdx + (mouseEdges.wheelDelta > 0 ? 1 : -1) + ITEM_ORDER.length) % ITEM_ORDER.length;
-          selectItem(ITEM_ORDER[nextIdx]);
+          const curIdx = itemOrder.indexOf(local.selected);
+          const nextIdx = (curIdx + (mouseEdges.wheelDelta > 0 ? 1 : -1) + itemOrder.length) % itemOrder.length;
+          selectItem(itemOrder[nextIdx]);
         }
         if (justPressed.includes("q")) {
           usePlayerStore.getState().setLocal({ isBuildMode: !local.isBuildMode });
@@ -279,16 +283,29 @@ export function LocalPlayer({
       }
 
       // ---- Shooting ----
-      if (combatActive && !local.isBuildMode && (local.selected === "rifle" || local.selected === "shotgun")) {
-        const weapon = WEAPONS[local.selected];
-        const wantsFire = weapon.automatic ? mouse.current.left : mouseEdges.leftJustPressed;
-        if (
-          wantsFire &&
-          performance.now() >= nextFireTime.current &&
-          !local.isReloading &&
-          local.ammoInMag > 0
-        ) {
-          fireLocalWeapon(weapon, camera.position as THREE.Vector3, forward);
+      if (combatActive && !local.isBuildMode && local.selected in WEAPONS) {
+        const weapon = WEAPONS[local.selected as WeaponId];
+        const now = performance.now();
+
+        // Mid-burst: keep firing the remaining shots of the current trigger
+        // pull, spaced by burstRate, independent of further input.
+        if (burstShotsRemaining.current > 0 && now >= nextFireTime.current) {
+          if (local.ammoInMag > 0 && !local.isReloading) {
+            fireLocalWeapon(weapon, camera.position as THREE.Vector3, forward);
+            burstShotsRemaining.current -= 1;
+          } else {
+            burstShotsRemaining.current = 0;
+          }
+          nextFireTime.current = now + 1000 / (weapon.burstRate ?? weapon.fireRate);
+        } else {
+          const wantsFire = weapon.automatic ? mouse.current.left : mouseEdges.leftJustPressed;
+          if (wantsFire && now >= nextFireTime.current && !local.isReloading && local.ammoInMag > 0) {
+            fireLocalWeapon(weapon, camera.position as THREE.Vector3, forward);
+            if (weapon.burstCount && weapon.burstCount > 1) {
+              burstShotsRemaining.current = weapon.burstCount - 1;
+              nextFireTime.current = now + 1000 / (weapon.burstRate ?? weapon.fireRate);
+            }
+          }
         }
       }
 
@@ -334,8 +351,9 @@ export function LocalPlayer({
   });
 
   function selectItem(id: WeaponId | HealingItemId) {
-    const isWeapon = id === "rifle" || id === "shotgun";
+    const isWeapon = id in WEAPONS;
     if (isWeapon) switchFlashUntil.current = performance.now() + 160;
+    burstShotsRemaining.current = 0;
     usePlayerStore.getState().setLocal({ selected: id, ...(isWeapon ? { weapon: id as WeaponId } : {}) });
     if (usePlayerStore.getState().local.isHealing) cancelHeal();
   }
@@ -353,7 +371,8 @@ export function LocalPlayer({
     nextFireTime.current = performance.now() + 1000 / weapon.fireRate;
     fireFlashRef.current = performance.now();
     usePlayerStore.getState().setLocal({ ammoInMag: usePlayerStore.getState().local.ammoInMag - 1 });
-    soundManager.play(weapon.id === "rifle" ? "rifleFire" : "shotgunFire", { volume: 1 });
+    const fireSound = weapon.soundProfile === "shotgun" ? "shotgunFire" : weapon.soundProfile === "pistol" ? "pistolFire" : "rifleFire";
+    soundManager.play(fireSound, { volume: 1 });
 
     const { hits, tracerEnd } = fireWeapon(weapon, origin, forward, registry.all(), LOCAL_ID);
     const muzzle = origin.clone().addScaledVector(forward, 0.6);

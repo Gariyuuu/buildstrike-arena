@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { usePlayerStore } from "@/stores/playerStore";
 import { useSettingsStore } from "@/stores/settingsStore";
-import { WEAPONS, WEAPON_ORDER } from "@/game/config/weapons";
+import { WEAPONS } from "@/game/config/weapons";
+import { useLoadoutStore } from "@/stores/loadoutStore";
 import { BUILD_TYPES, type BuildKind } from "@/game/config/builds";
 
 const BUILD_ORDER: BuildKind[] = ["wall", "floor", "ramp"];
@@ -63,8 +64,10 @@ function Bar({ label, value, max, color, bg }: { label: string; value: number; m
 
 function InventoryBar() {
   const local = usePlayerStore((s) => s.local);
+  const primary = useLoadoutStore((s) => s.primary);
+  const secondary = useLoadoutStore((s) => s.secondary);
   const items = [
-    ...WEAPON_ORDER.map((id) => ({ id, kind: "weapon" as const, label: WEAPONS[id].name.split(" ")[0], count: null as number | null })),
+    ...[primary, secondary].map((id) => ({ id, kind: "weapon" as const, label: WEAPONS[id].name.split(" ")[0], count: null as number | null })),
     { id: "shieldPotion" as const, kind: "heal" as const, label: "Shield", count: local.healingCounts.shieldPotion },
     { id: "medkit" as const, kind: "heal" as const, label: "Medkit", count: local.healingCounts.medkit },
   ];

@@ -1,10 +1,11 @@
 "use client";
 
 import { create } from "zustand";
-import { WEAPONS, WEAPON_ORDER, type WeaponId } from "@/game/config/weapons";
+import { WEAPONS, type WeaponId } from "@/game/config/weapons";
 import { HEALING } from "@/game/config/healing";
 import { MATCH_CONFIG } from "@/game/config/match";
 import type { BuildKind } from "@/game/config/builds";
+import { useLoadoutStore } from "@/stores/loadoutStore";
 
 export type SelectedItem = WeaponId | "shieldPotion" | "medkit";
 
@@ -43,13 +44,14 @@ interface PlayerState {
 }
 
 function freshHud(): HudState {
+  const primary = useLoadoutStore.getState().primary;
   return {
     health: MATCH_CONFIG.maxHealth,
     shield: 0,
-    ammoInMag: WEAPONS.rifle.magazineSize,
-    reserveAmmo: WEAPONS.rifle.magazineSize * 3,
-    weapon: "rifle",
-    selected: "rifle",
+    ammoInMag: WEAPONS[primary].magazineSize,
+    reserveAmmo: WEAPONS[primary].magazineSize * 3,
+    weapon: primary,
+    selected: primary,
     isBuildMode: false,
     buildKind: "wall",
     isReloading: false,
@@ -78,9 +80,8 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   triggerBuildDenied: () => set({ buildDenied: performance.now() }),
   setEliminationMessage: (msg) => set({ eliminationMessage: msg }),
   cycleWeapon: () => {
-    const cur = get().local.weapon;
-    const idx = WEAPON_ORDER.indexOf(cur);
-    const next = WEAPON_ORDER[(idx + 1) % WEAPON_ORDER.length];
+    const { primary, secondary } = useLoadoutStore.getState();
+    const next = get().local.weapon === primary ? secondary : primary;
     set((s) => ({ local: { ...s.local, weapon: next, selected: next } }));
   },
   resetForRound: () =>

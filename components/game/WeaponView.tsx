@@ -3,7 +3,23 @@
 import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import type { WeaponId } from "@/game/config/weapons";
+import { WEAPONS, type WeaponId, type WeaponVisual } from "@/game/config/weapons";
+
+interface VisualPreset {
+  body: [number, number, number];
+  barrelLen: number;
+  barrelRadius: number;
+  barrelZ: number;
+  muzzleZ: number;
+  scope: boolean;
+}
+
+const VISUAL_PRESETS: Record<WeaponVisual, VisualPreset> = {
+  rifle: { body: [0.09, 0.1, 0.68], barrelLen: 0.42, barrelRadius: 0.025, barrelZ: 0.4, muzzleZ: 0.62, scope: false },
+  shotgun: { body: [0.1, 0.12, 0.55], barrelLen: 0.35, barrelRadius: 0.045, barrelZ: 0.32, muzzleZ: 0.52, scope: false },
+  pistol: { body: [0.07, 0.08, 0.32], barrelLen: 0.18, barrelRadius: 0.02, barrelZ: 0.2, muzzleZ: 0.32, scope: false },
+  marksman: { body: [0.08, 0.09, 0.85], barrelLen: 0.55, barrelRadius: 0.022, barrelZ: 0.5, muzzleZ: 0.8, scope: true },
+};
 
 export function WeaponView({
   weapon,
@@ -42,31 +58,38 @@ export function WeaponView({
     }
   });
 
-  const isShotgun = weapon === "shotgun";
+  const preset = VISUAL_PRESETS[WEAPONS[weapon].visual];
 
   return (
     <group ref={group} position={[0.32, 0.55, 0.28]}>
       {/* Body */}
       <mesh castShadow>
-        <boxGeometry args={isShotgun ? [0.1, 0.12, 0.55] : [0.09, 0.1, 0.68]} />
+        <boxGeometry args={preset.body} />
         <meshStandardMaterial color="#1b1f27" roughness={0.4} metalness={0.6} />
       </mesh>
       {/* Barrel */}
-      <mesh position={[0, 0.01, isShotgun ? 0.32 : 0.4]} rotation={[Math.PI / 2, 0, 0]}>
-        <cylinderGeometry args={isShotgun ? [0.045, 0.045, 0.35, 8] : [0.025, 0.025, 0.42, 8]} />
+      <mesh position={[0, 0.01, preset.barrelZ]} rotation={[Math.PI / 2, 0, 0]}>
+        <cylinderGeometry args={[preset.barrelRadius, preset.barrelRadius, preset.barrelLen, 8]} />
         <meshStandardMaterial color="#0e1116" roughness={0.3} metalness={0.8} />
       </mesh>
+      {/* Scope (marksman only) */}
+      {preset.scope && (
+        <mesh position={[0, 0.075, 0.15]}>
+          <cylinderGeometry args={[0.022, 0.022, 0.22, 10]} />
+          <meshStandardMaterial color="#05070a" roughness={0.2} metalness={0.9} />
+        </mesh>
+      )}
       {/* Accent stripe */}
       <mesh position={[0, 0.065, 0.05]}>
         <boxGeometry args={[0.03, 0.02, 0.2]} />
         <meshStandardMaterial color={accent} emissive={accent} emissiveIntensity={1.2} />
       </mesh>
       {/* Muzzle flash */}
-      <mesh ref={flashMesh} position={[0, 0.01, isShotgun ? 0.52 : 0.62]} visible={false}>
+      <mesh ref={flashMesh} position={[0, 0.01, preset.muzzleZ]} visible={false}>
         <coneGeometry args={[0.09, 0.22, 6]} />
         <meshBasicMaterial color="#ffe08a" />
       </mesh>
-      <pointLight ref={flashLight} position={[0, 0.01, 0.5]} intensity={0} color="#ffcf7a" distance={3} />
+      <pointLight ref={flashLight} position={[0, 0.01, preset.muzzleZ - 0.1]} intensity={0} color="#ffcf7a" distance={3} />
     </group>
   );
 }

@@ -4,7 +4,15 @@
 // toward each frame, giving smooth, blended state transitions without a
 // real animation-clip system.
 
+import { WEAPONS, type WeaponId } from "@/game/config/weapons";
+
 export type ArmPoseId = "none" | "rifle" | "shotgun" | "pistol" | "reload" | "heal" | "shield" | "build";
+
+/** All 8 weapons share one of these 3 base holding poses via their `visual` class (marksman reuses the rifle stance — both are two-handed long guns). */
+export function weaponArmPose(weaponId: WeaponId): ArmPoseId {
+  const visual = WEAPONS[weaponId].visual;
+  return visual === "pistol" ? "pistol" : visual === "shotgun" ? "shotgun" : "rifle";
+}
 export type LocomotionId = "idle" | "walk" | "sprint" | "jump" | "fall" | "land";
 
 export interface ArmPoseTarget {

@@ -8,6 +8,7 @@ import { useProfileStore } from "@/stores/profileStore";
 import { createRoomCode } from "@/game/networking/client";
 import type { BotDifficulty } from "@/game/config/bots";
 import { soundManager } from "@/game/audio/soundManager";
+import { LoadoutPicker } from "@/components/ui/lobby/LoadoutPicker";
 
 const DIFFICULTIES: { id: BotDifficulty; label: string; desc: string }[] = [
   { id: "easy", label: "Easy", desc: "Slower reactions, forgiving aim" },
@@ -92,6 +93,7 @@ export function PlayTab() {
               ))}
             </div>
           </div>
+          <LoadoutPicker />
           <button className="btn-primary w-full" onClick={() => goPlay("bot")}>
             Play vs Bot
           </button>
@@ -100,6 +102,7 @@ export function PlayTab() {
 
       {tab === "online" && (
         <div className="flex flex-col gap-4">
+          <LoadoutPicker />
           <button className="btn-primary w-full" onClick={createRoom}>
             Create Private Room
           </button>
@@ -129,6 +132,7 @@ export function PlayTab() {
             Spawn alone in the arena. Shoot targets, place builds freely, and reset instantly — no score, no
             matchmaking.
           </p>
+          <LoadoutPicker />
           <button className="btn-primary w-full" onClick={() => goPlay("training")}>
             Enter Training Arena
           </button>
