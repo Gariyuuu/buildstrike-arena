@@ -28,7 +28,7 @@ import { groundLootLookup } from "@/game/br/loot";
 const BOT_SKIN_IDS = Object.keys(SKINS);
 const CHASE_STOP_DISTANCE = 1.5;
 
-export function BRAgent({ agent, spawn }: { agent: BRAgentSpawn; spawn: [number, number, number] }) {
+export function BRAgent({ agent, spawn, shadows }: { agent: BRAgentSpawn; spawn: [number, number, number]; shadows: boolean }) {
   const registry = useDamageableRegistry();
   const move = useCharacterMover();
   const rigidBody = useRef<RapierRigidBody>(null);
@@ -203,7 +203,7 @@ export function BRAgent({ agent, spawn }: { agent: BRAgentSpawn; spawn: [number,
           <capsuleGeometry args={[MOVEMENT.capsuleRadius + 0.03, MOVEMENT.capsuleHalfHeight * 2, 4, 8]} />
           <meshBasicMaterial visible={false} />
         </mesh>
-        <CharacterModel color="#c96b3a" accent="#ff8a33" skin={skin?.skin} movingRef={movingRef} groundedRef={grounded} velocityYRef={velocityY} armPoseRef={armPoseRef} fireReactRef={fireFlashRef} hitReactRef={hitReactRef} eliminated={isDead} />
+        <CharacterModel color="#c96b3a" accent="#ff8a33" skin={skin?.skin} shadows={shadows} movingRef={movingRef} groundedRef={grounded} velocityYRef={velocityY} armPoseRef={armPoseRef} fireReactRef={fireFlashRef} hitReactRef={hitReactRef} eliminated={isDead} />
         {currentWeapon && <WeaponView weapon={currentWeapon} fireFlashRef={fireFlashRef} reloading={false} switchFlashUntilRef={noSwitchFlash} accent="#ff8a33" />}
       </group>
     </group>

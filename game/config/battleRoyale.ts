@@ -35,8 +35,12 @@ export const BR_MAP_RADIUS = 190; // playable half-extent before the first zone 
 
 export const BR_CONFIG = {
   maxPlayers: BR_MAX_PLAYERS,
-  chestCount: 22,
-  groundLootCount: 55,
+  // Trimmed down from 22/55 as part of a perf pass — every loot/chest item
+  // is a real mesh+material in the scene (up to 20 characters plus 30-50 map
+  // structures already add up fast), and this many extra objects was
+  // contributing to the reported lag on top of the point-light/shadow fixes.
+  chestCount: 14,
+  groundLootCount: 36,
   pickupRange: 2.2,
   chestOpenRange: 2.5,
 } as const;

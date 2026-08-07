@@ -35,7 +35,7 @@ const LOCAL_ID = LOCAL_AGENT_ID;
 const UP = new THREE.Vector3(0, 1, 0);
 const CHEST_RANGE = 2.5;
 
-export function BRLocalPlayer({ domElement, spawn, chests }: { domElement: React.RefObject<HTMLElement | null>; spawn: [number, number, number]; chests: ChestSpawn[] }) {
+export function BRLocalPlayer({ domElement, spawn, chests, shadows }: { domElement: React.RefObject<HTMLElement | null>; spawn: [number, number, number]; chests: ChestSpawn[]; shadows: boolean }) {
   const { camera } = useThree();
   const move = useCharacterMover();
   const registry = useDamageableRegistry();
@@ -346,7 +346,7 @@ export function BRLocalPlayer({ domElement, spawn, chests }: { domElement: React
           <capsuleGeometry args={[MOVEMENT.capsuleRadius + 0.03, MOVEMENT.capsuleHalfHeight * 2, 4, 8]} />
           <meshBasicMaterial visible={false} />
         </mesh>
-        <CharacterModel color="#3aa0c9" accent="#33e6ff" skin={skin.skin} movingRef={movingRef} groundedRef={grounded} velocityYRef={velocityY} armPoseRef={armPoseRef} fireReactRef={fireFlashRef} hitReactRef={hitReactRef} eliminated={isDead} />
+        <CharacterModel color="#3aa0c9" accent="#33e6ff" skin={skin.skin} shadows={shadows} movingRef={movingRef} groundedRef={grounded} velocityYRef={velocityY} armPoseRef={armPoseRef} fireReactRef={fireFlashRef} hitReactRef={hitReactRef} eliminated={isDead} />
         {currentWeapon && <WeaponView weapon={currentWeapon} fireFlashRef={fireFlashRef} reloading={false} switchFlashUntilRef={noSwitchFlash} accent="#33e6ff" />}
       </group>
     </group>

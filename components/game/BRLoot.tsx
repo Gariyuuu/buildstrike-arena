@@ -21,11 +21,15 @@ function GroundLootItem({ spawn }: { spawn: GroundLootSpawn }) {
   if (claimed) return null;
   return (
     <group position={spawn.position}>
-      <mesh ref={mesh} castShadow>
+      {/* No real-time point light here on purpose — up to ~55 of these can be
+          on screen at once in a BR match, and that many dynamic lights was a
+          serious frame-rate cost (every lit surface in the scene evaluates
+          every light). The glow reads fine from the emissive material alone
+          with toneMapped off. */}
+      <mesh ref={mesh}>
         <octahedronGeometry args={[0.28, 0]} />
-        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.7} roughness={0.35} />
+        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={1.6} roughness={0.35} toneMapped={false} />
       </mesh>
-      <pointLight intensity={2} distance={4} color={color} />
     </group>
   );
 }
@@ -34,15 +38,16 @@ function ChestItem({ spawn }: { spawn: ChestSpawn }) {
   const opened = useBRStore((s) => s.claimedLootIds.includes(spawn.id));
   return (
     <group position={spawn.position}>
-      <mesh castShadow visible={!opened}>
+      <mesh visible={!opened}>
         <boxGeometry args={[0.9, 0.7, 0.6]} />
         <meshStandardMaterial color="#8a6d1a" roughness={0.5} metalness={0.4} />
       </mesh>
+      {/* Same reasoning as GroundLootItem — no per-chest point light (up to
+          ~22 on screen), emissive-only glow instead. */}
       <mesh position={[0, 0.05, 0]} visible={!opened}>
         <boxGeometry args={[0.94, 0.1, 0.64]} />
-        <meshStandardMaterial color="#ffd23f" emissive="#ffd23f" emissiveIntensity={0.6} />
+        <meshStandardMaterial color="#ffd23f" emissive="#ffd23f" emissiveIntensity={1.4} toneMapped={false} />
       </mesh>
-      {!opened && <pointLight intensity={2.5} distance={5} color="#ffd23f" />}
     </group>
   );
 }

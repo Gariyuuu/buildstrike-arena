@@ -46,7 +46,7 @@ export function GameCanvas() {
           <Physics gravity={[0, -18, 0]} timeStep="vary">
             <DamageableProvider>
               {mode === "battleRoyale" ? (
-                <BattleRoyaleScene domElement={domRef} shadows={shadowsEnabled} />
+                <BattleRoyaleScene domElement={domRef} />
               ) : (
                 <>
                   <Arena shadows={shadowsEnabled} />
