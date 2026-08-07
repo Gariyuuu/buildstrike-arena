@@ -37,21 +37,6 @@ function IdleCharacter() {
   );
 }
 
-function Platform() {
-  return (
-    <group position={[0, -0.35, 0]}>
-      <mesh rotation={[-Math.PI / 2, 0, 0]}>
-        <cylinderGeometry args={[1.1, 1.1, 0.08, 48]} />
-        <meshStandardMaterial color="#111826" roughness={0.4} metalness={0.4} />
-      </mesh>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.045, 0]}>
-        <ringGeometry args={[0.85, 1.0, 48]} />
-        <meshBasicMaterial color="#33e6ff" transparent opacity={0.7} />
-      </mesh>
-    </group>
-  );
-}
-
 /** Small, self-contained R3F canvas used across the lobby for the equipped-character preview — no physics, no game state, just idle animation. */
 export function LobbyCharacterPreview({ className }: { className?: string }) {
   return (
@@ -69,7 +54,6 @@ export function LobbyCharacterPreview({ className }: { className?: string }) {
         <pointLight position={[-2, 1.5, -1]} intensity={0.6} color="#33e6ff" />
         <group position={[0, -0.5, 0]}>
           <IdleCharacter />
-          <Platform />
         </group>
       </Canvas>
     </div>

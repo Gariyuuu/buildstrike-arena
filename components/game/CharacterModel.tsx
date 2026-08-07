@@ -315,36 +315,40 @@ export function CharacterModel({
           {materials.skinMat}
         </mesh>
 
-        {/* Head — narrower and less perfectly cubic than before. */}
+        {/* Head — a scaled sphere instead of a box. A cube head is exactly
+            the "Steve"/Minecraft silhouette no amount of resizing fixes;
+            swapping the base shape for a rounded one reads as an actual
+            head instead of a block with a face painted on it. */}
         <group ref={head} position={[0, 0.55, 0]}>
-          <mesh castShadow={shadows}>
-            <boxGeometry args={[0.24, 0.27, 0.26]} />
+          <mesh castShadow={shadows} scale={[0.95, 1.05, 0.92]}>
+            <sphereGeometry args={[0.145, 16, 14]} />
             {materials.skinMat}
           </mesh>
           {/* Face: a dark tactical visor frame with two glowing eye slits
               (accent-colored, so every skin's face reads differently) instead
               of the old single flat accent bar, which looked like a blank
-              plate rather than a face. */}
-          <mesh position={[0, 0.005, 0.135]}>
-            <boxGeometry args={[0.21, 0.09, 0.025]} />
+              plate rather than a face. Sits just proud of the head sphere's
+              front curve, like a helmet visor. */}
+          <mesh position={[0, 0.01, 0.135]}>
+            <boxGeometry args={[0.19, 0.08, 0.02]} />
             {materials.visorFrame}
           </mesh>
-          <mesh position={[-0.06, 0.008, 0.15]}>
-            <boxGeometry args={[0.06, 0.035, 0.015]} />
+          <mesh position={[-0.055, 0.012, 0.148]}>
+            <boxGeometry args={[0.055, 0.032, 0.012]} />
             {materials.eyeGlow}
           </mesh>
-          <mesh position={[0.06, 0.008, 0.15]}>
-            <boxGeometry args={[0.06, 0.035, 0.015]} />
+          <mesh position={[0.055, 0.012, 0.148]}>
+            <boxGeometry args={[0.055, 0.032, 0.012]} />
             {materials.eyeGlow}
           </mesh>
           {/* Jaw/chin shadow line for a touch more facial structure below the visor. */}
-          <mesh position={[0, -0.075, 0.135]}>
-            <boxGeometry args={[0.14, 0.018, 0.02]} />
+          <mesh position={[0, -0.075, 0.125]}>
+            <boxGeometry args={[0.12, 0.016, 0.018]} />
             {materials.visorFrame}
           </mesh>
           {hasHair && (
-            <mesh position={[0, 0.115, -0.02]} castShadow={shadows}>
-              <boxGeometry args={[0.25, 0.12, 0.25]} />
+            <mesh position={[0, 0.06, -0.01]} rotation={[0.1, 0, 0]} castShadow={shadows} scale={[1.02, 1, 1]}>
+              <sphereGeometry args={[0.155, 14, 10, 0, Math.PI * 2, 0, Math.PI * 0.62]} />
               {materials.hair}
             </mesh>
           )}
