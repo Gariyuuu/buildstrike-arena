@@ -1,6 +1,8 @@
 "use client";
 
 import { useMatchStore } from "@/stores/matchStore";
+import { useGameStore } from "@/stores/gameStore";
+import { useNetworkStore } from "@/stores/networkStore";
 import { MATCH_CONFIG } from "@/game/config/match";
 
 export function Scoreboard() {
@@ -9,6 +11,9 @@ export function Scoreboard() {
   const phase = useMatchStore((s) => s.phase);
   const countdown = useMatchStore((s) => s.countdown);
   const roundWinner = useMatchStore((s) => s.roundWinner);
+  const mode = useGameStore((s) => s.mode);
+  const onlineRoundsToWin = useNetworkStore((s) => s.matchSettings.roundsToWin);
+  const roundsToWin = mode === "online" ? onlineRoundsToWin : MATCH_CONFIG.roundsToWin;
 
   return (
     <>
@@ -17,7 +22,7 @@ export function Scoreboard() {
         <div className="text-center text-[11px] font-semibold uppercase tracking-widest text-white/40">
           Round {round}
           <br />
-          <span className="text-white/25">first to {MATCH_CONFIG.roundsToWin}</span>
+          <span className="text-white/25">first to {roundsToWin}</span>
         </div>
         <ScorePip label="OPP" value={score.opponent} accent="#ff8a33" />
       </div>

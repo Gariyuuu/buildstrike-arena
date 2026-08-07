@@ -14,6 +14,8 @@ import type { OpponentStateMsg, OpponentFiredMsg } from "@/game/networking/types
 import { WEAPONS, type WeaponId } from "@/game/config/weapons";
 import { weaponArmPose, type ArmPoseId } from "@/game/animation/pose";
 import { usePlayerStore } from "@/stores/playerStore";
+import { useNetworkStore } from "@/stores/networkStore";
+import { SKINS } from "@/game/config/cosmetics";
 
 const REMOTE_ID = "remote-player";
 
@@ -42,6 +44,8 @@ export function RemotePlayer({
   const lastOpponentHealth = useRef(100);
   const opponentHealth = usePlayerStore((s) => s.opponent.health);
   const isDead = opponentHealth <= 0;
+  const opponentSkinId = useNetworkStore((s) => s.opponentInfo?.skinId);
+  const opponentSkin = opponentSkinId ? SKINS[opponentSkinId]?.skin : undefined;
 
   useEffect(() => {
     if (!hitboxMesh.current) return;
@@ -107,6 +111,7 @@ export function RemotePlayer({
         <CharacterModel
           color="#c96b3a"
           accent="#ff8a33"
+          skin={opponentSkin}
           movingRef={movingRef}
           armPoseRef={armPoseRef}
           fireReactRef={fireFlashRef}

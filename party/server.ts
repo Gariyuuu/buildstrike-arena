@@ -1,11 +1,28 @@
 import { Server, routePartykitRequest, type Connection, type ConnectionContext } from "partyserver";
-import { WEAPONS } from "../game/config/weapons";
+import { WEAPONS, type WeaponId } from "../game/config/weapons";
 import { HEALING } from "../game/config/healing";
 import { MATCH_CONFIG } from "../game/config/match";
 import { MOVEMENT } from "../game/config/movement";
 import { BUILD_TYPES } from "../game/config/builds";
 import { validatePlacement } from "../game/building/grid";
 import type { ClientMessage, ServerMessage, Side, Vec3 } from "../game/networking/types";
+
+interface PlayerInfo {
+  displayName: string;
+  level: number;
+  skinId: string;
+  primaryWeapon: WeaponId;
+  secondaryWeapon: WeaponId;
+}
+
+interface MatchSettings {
+  roundsToWin: number;
+  headshotsEnabled: boolean;
+  healingEnabled: boolean;
+  infiniteBuilds: boolean;
+}
+
+const ALLOWED_ROUNDS_TO_WIN = [3, 5, 10];
 
 interface PlayerSlot {
   side: Side;
@@ -20,6 +37,7 @@ interface PlayerSlot {
   lastState: { position: Vec3; timestamp: number } | null;
   disconnectTimer: ReturnType<typeof setTimeout> | null;
   rematchRequested: boolean;
+  info: PlayerInfo | null;
 }
 
 interface BuildRecord {
@@ -44,6 +62,12 @@ export class GameRoom extends Server<Env> {
   score: Record<Side, number> = { a: 0, b: 0 };
   round = 1;
   phase: Phase = "lobby";
+  matchSettings: MatchSettings = {
+    roundsToWin: MATCH_CONFIG.roundsToWin,
+    headshotsEnabled: true,
+    healingEnabled: true,
+    infiniteBuilds: false,
+  };
 
   private send(connection: Connection, msg: ServerMessage) {
     connection.send(JSON.stringify(msg));
@@ -146,6 +170,12 @@ export class GameRoom extends Server<Env> {
     const opponentConn = this.opponentConnection(slot.side);
     if (opponentConn) this.send(opponentConn, { type: "opponentReconnected" });
     this.broadcastRoomStatus();
+
+    this.send(connection, { type: "matchSettings", ...this.matchSettings });
+    const opponentSlot = this.slots[this.otherSide(slot.side)];
+    if (opponentSlot?.info) {
+      this.send(connection, { type: "opponentInfo", ...opponentSlot.info });
+    }
   }
 
   private freshSlot(side: Side, token: string, name: string): PlayerSlot {
@@ -162,6 +192,7 @@ export class GameRoom extends Server<Env> {
       lastState: null,
       disconnectTimer: null,
       rematchRequested: false,
+      info: null,
     };
   }
 
@@ -230,6 +261,30 @@ export class GameRoom extends Server<Env> {
       case "leave":
         connection.close(1000, "left");
         return;
+      case "playerInfo":
+        slot.info = {
+          displayName: msg.displayName.slice(0, 16),
+          level: msg.level,
+          skinId: msg.skinId,
+          primaryWeapon: msg.primaryWeapon,
+          secondaryWeapon: msg.secondaryWeapon,
+        };
+        const oppConn = this.opponentConnection(slot.side);
+        if (oppConn) this.send(oppConn, { type: "opponentInfo", ...slot.info });
+        return;
+      case "hostSettings":
+        // Only the room creator (side "a" by construction — see PlayTab.tsx's
+        // create-vs-join flow) may change match settings, and only pre-match
+        // — settings are locked in once combat is already running.
+        if (slot.side !== "a" || this.phase !== "lobby") return;
+        this.matchSettings = {
+          roundsToWin: ALLOWED_ROUNDS_TO_WIN.includes(msg.roundsToWin) ? msg.roundsToWin : this.matchSettings.roundsToWin,
+          headshotsEnabled: msg.headshotsEnabled,
+          healingEnabled: msg.healingEnabled,
+          infiniteBuilds: msg.infiniteBuilds,
+        };
+        this.broadcastMsg({ type: "matchSettings", ...this.matchSettings });
+        return;
     }
   }
 
@@ -291,10 +346,11 @@ export class GameRoom extends Server<Env> {
     if (msg.hitPlayer) {
       const target = this.slots[this.otherSide(slot.side)];
       if (target) {
+        const headshot = this.matchSettings.headshotsEnabled && msg.hitPlayer.headshot;
         const pellets = Math.min(Math.max(msg.hitPlayer.pellets, 1), weapon.pellets);
-        const perPellet = weapon.damage * (msg.hitPlayer.headshot ? weapon.headshotMultiplier : 1);
+        const perPellet = weapon.damage * (headshot ? weapon.headshotMultiplier : 1);
         const totalDamage = Math.round(perPellet * pellets);
-        this.applyDamage(target, totalDamage, msg.hitPlayer.headshot);
+        this.applyDamage(target, totalDamage, headshot);
       }
     } else if (msg.hitBuild) {
       const build = this.builds.find((b) => b.id === msg.hitBuild!.buildId);
@@ -340,7 +396,7 @@ export class GameRoom extends Server<Env> {
     this.score[winner] += 1;
     this.broadcastMsg({ type: "roundEnd", winner, score: this.score });
 
-    if (this.score[winner] >= MATCH_CONFIG.roundsToWin) {
+    if (this.score[winner] >= this.matchSettings.roundsToWin) {
       this.phase = "match-end";
       this.broadcastMsg({ type: "matchEnd", winner });
       return;
@@ -384,7 +440,7 @@ export class GameRoom extends Server<Env> {
     const opponentPos = this.slots[this.otherSide(slot.side)]?.lastState?.position;
     const selfPos = slot.lastState?.position;
     const playerPositions: Vec3[] = [opponentPos, selfPos].filter(Boolean) as Vec3[];
-    const activeCount = this.builds.filter((b) => b.owner === slot.side).length;
+    const activeCount = this.matchSettings.infiniteBuilds ? -1 : this.builds.filter((b) => b.owner === slot.side).length;
 
     const result = validatePlacement(
       msg.kind,
@@ -416,6 +472,7 @@ export class GameRoom extends Server<Env> {
   }
 
   private handleHeal(slot: PlayerSlot, msg: Extract<ClientMessage, { type: "healStart" | "healCancel" | "healComplete" }>) {
+    if (!this.matchSettings.healingEnabled) return;
     const event = msg.type === "healStart" ? "start" : msg.type === "healCancel" ? "cancel" : "complete";
     if (event === "complete") {
       const item = HEALING[msg.item];

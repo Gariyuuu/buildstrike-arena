@@ -521,7 +521,12 @@ export function LocalPlayer({
     }
     const opponentPos = adapter.getOpponentPosition();
     const playerPositions: Vec3[] = [bodyPos, ...(opponentPos ? [opponentPos] : [])];
-    const activeCount = useBuildsStore.getState().builds.filter((b) => b.owner === "local").length;
+    // Mirrors party/server.ts's authoritative check exactly (-1 bypasses the
+    // cap) so the client-side ghost preview doesn't show "invalid" — and
+    // tryPlaceBuild doesn't block sending — for a build the server would
+    // actually accept when the host has enabled infinite builds.
+    const infiniteBuilds = mode === "online" && useNetworkStore.getState().matchSettings.infiniteBuilds;
+    const activeCount = infiniteBuilds ? -1 : useBuildsStore.getState().builds.filter((b) => b.owner === "local").length;
     const result = validatePlacement(
       kind,
       [hit.point.x, hit.point.y, hit.point.z],
@@ -549,9 +554,17 @@ export function LocalPlayer({
     const cfg = HEALING[item];
     const atCap = item === "shieldPotion" ? local.shield >= 100 : local.health >= 100;
     const hasCharges = local.healingCounts[item] > 0;
+    // Host can disable healing per-room (settings are locked once combat
+    // starts — see party/server.ts's hostSettings handler — so this can't
+    // flip mid-heal). Gated here, not just on the server, because the
+    // server silently drops a disabled heal's completion message and this
+    // function otherwise applies health/shield optimistically regardless of
+    // any server response — without this the local view would desync from
+    // the server's real (unhealed) authoritative health.
+    const healingAllowed = mode !== "online" || useNetworkStore.getState().matchSettings.healingEnabled;
 
     if (!local.isHealing) {
-      if (holding && hasCharges && !atCap) {
+      if (holding && hasCharges && !atCap && healingAllowed) {
         usePlayerStore.getState().setLocal({ isHealing: true, healProgress: 0 });
         healStartedItem.current = item;
         healEndTime.current = performance.now() + cfg.duration * 1000;

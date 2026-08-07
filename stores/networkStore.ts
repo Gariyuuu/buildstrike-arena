@@ -2,6 +2,7 @@
 
 import { create } from "zustand";
 import type { Side } from "@/game/networking/types";
+import type { WeaponId } from "@/game/config/weapons";
 
 export type ConnectionStatus =
   | "offline"
@@ -9,6 +10,28 @@ export type ConnectionStatus =
   | "connected"
   | "reconnecting"
   | "disconnected";
+
+export interface OpponentInfo {
+  displayName: string;
+  level: number;
+  skinId: string;
+  primaryWeapon: WeaponId;
+  secondaryWeapon: WeaponId;
+}
+
+export interface MatchSettings {
+  roundsToWin: number;
+  headshotsEnabled: boolean;
+  healingEnabled: boolean;
+  infiniteBuilds: boolean;
+}
+
+export const DEFAULT_MATCH_SETTINGS: MatchSettings = {
+  roundsToWin: 5,
+  headshotsEnabled: true,
+  healingEnabled: true,
+  infiniteBuilds: false,
+};
 
 interface NetworkState {
   status: ConnectionStatus;
@@ -19,6 +42,8 @@ interface NetworkState {
   opponentPresent: boolean;
   opponentConnected: boolean;
   opponentReady: boolean;
+  opponentInfo: OpponentInfo | null;
+  matchSettings: MatchSettings;
   localReady: boolean;
   matchStarted: boolean;
   ping: number;
@@ -31,6 +56,8 @@ interface NetworkState {
   setOpponentPresent: (v: boolean) => void;
   setOpponentConnected: (v: boolean) => void;
   setOpponentReady: (v: boolean) => void;
+  setOpponentInfo: (info: OpponentInfo) => void;
+  setMatchSettings: (settings: MatchSettings) => void;
   setLocalReady: (v: boolean) => void;
   setMatchStarted: (v: boolean) => void;
   setPing: (ms: number) => void;
@@ -47,6 +74,8 @@ const initial = {
   opponentPresent: false,
   opponentConnected: false,
   opponentReady: false,
+  opponentInfo: null as OpponentInfo | null,
+  matchSettings: DEFAULT_MATCH_SETTINGS,
   localReady: false,
   matchStarted: false,
   ping: 0,
@@ -63,6 +92,8 @@ export const useNetworkStore = create<NetworkState>((set) => ({
   setOpponentPresent: (opponentPresent) => set({ opponentPresent }),
   setOpponentConnected: (opponentConnected) => set({ opponentConnected }),
   setOpponentReady: (opponentReady) => set({ opponentReady }),
+  setOpponentInfo: (opponentInfo) => set({ opponentInfo }),
+  setMatchSettings: (matchSettings) => set({ matchSettings }),
   setLocalReady: (localReady) => set({ localReady }),
   setMatchStarted: (matchStarted) => set({ matchStarted }),
   setPing: (ping) => set({ ping }),

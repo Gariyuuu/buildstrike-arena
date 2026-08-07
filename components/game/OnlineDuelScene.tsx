@@ -10,6 +10,9 @@ import { useNetworkStore } from "@/stores/networkStore";
 import { useMatchStore } from "@/stores/matchStore";
 import { usePlayerStore } from "@/stores/playerStore";
 import { useBuildsStore } from "@/stores/buildsStore";
+import { useProfileStore } from "@/stores/profileStore";
+import { useInventoryStore } from "@/stores/inventoryStore";
+import { useLoadoutStore } from "@/stores/loadoutStore";
 import { effectsBus } from "@/game/effects/effectsBus";
 import { soundManager } from "@/game/audio/soundManager";
 import { positionTracker } from "@/game/state/positionTracker";
@@ -21,13 +24,46 @@ function translate(side: Side): "local" | "opponent" {
   return side === useNetworkStore.getState().mySide ? "local" : "opponent";
 }
 
-function handleMessage(msg: ServerMessage, netStateRef: React.RefObject<OpponentStateMsg | null>, fireEventRef: React.RefObject<OpponentFiredMsg | null>) {
+function handleMessage(
+  msg: ServerMessage,
+  netStateRef: React.RefObject<OpponentStateMsg | null>,
+  fireEventRef: React.RefObject<OpponentFiredMsg | null>,
+  client: GameNetworkClient
+) {
   const net = useNetworkStore.getState();
   switch (msg.type) {
-    case "welcome":
+    case "welcome": {
       net.setMySide(msg.side);
       net.setStatus("connected");
       net.setOpponentPresent(msg.opponentPresent);
+      const profile = useProfileStore.getState();
+      const loadout = useLoadoutStore.getState();
+      client.send({
+        type: "playerInfo",
+        displayName: profile.displayName,
+        level: profile.level,
+        skinId: useInventoryStore.getState().equipped.skin,
+        primaryWeapon: loadout.primary,
+        secondaryWeapon: loadout.secondary,
+      });
+      break;
+    }
+    case "opponentInfo":
+      net.setOpponentInfo({
+        displayName: msg.displayName,
+        level: msg.level,
+        skinId: msg.skinId,
+        primaryWeapon: msg.primaryWeapon,
+        secondaryWeapon: msg.secondaryWeapon,
+      });
+      break;
+    case "matchSettings":
+      net.setMatchSettings({
+        roundsToWin: msg.roundsToWin,
+        headshotsEnabled: msg.headshotsEnabled,
+        healingEnabled: msg.healingEnabled,
+        infiniteBuilds: msg.infiniteBuilds,
+      });
       break;
     case "roomStatus":
       net.setOpponentPresent(msg.opponentPresent);
@@ -183,7 +219,7 @@ export function OnlineDuelScene({ domElement }: { domElement: React.RefObject<HT
     }
     setActiveClient(client);
 
-    const unsub = client.onMessage((msg: ServerMessage) => handleMessage(msg, netStateRef, fireEventRef));
+    const unsub = client.onMessage((msg: ServerMessage) => handleMessage(msg, netStateRef, fireEventRef, client));
 
     return () => {
       unsub();

@@ -86,9 +86,14 @@ export const useMatchStore = create<MatchState>((set, get) => ({
   manualReset: () => set((s) => ({ resetSignal: s.resetSignal + 1 })),
   setOpponentDisconnected: (v) => set({ opponentDisconnected: v }),
   reset: () => set({ ...initial, score: { local: 0, opponent: 0 }, damageDealt: 0, healedThisMatch: false }),
+  // Whether this round also ends the match is NOT computed here — the room's
+  // roundsToWin is host-configurable (3/5/10, see OnlineLobbyOverlay) and only
+  // the server knows the room's current value. The server always follows a
+  // match-winning "roundEnd" with an explicit "matchEnd" (see party/server.ts
+  // endRound()), handled by applyServerMatchEnd below, so guessing the
+  // threshold here would desync from any non-default room setting.
   applyServerRoundEnd: (winner, score) => {
-    const matchWinner = score[winner] >= MATCH_CONFIG.roundsToWin ? winner : null;
-    set({ score, roundWinner: winner, phase: matchWinner ? "match-end" : "round-end", matchWinner });
+    set({ score, roundWinner: winner, phase: "round-end", matchWinner: null });
   },
   applyServerMatchEnd: (winner) => set({ phase: "match-end", matchWinner: winner }),
   applyServerCountdown: (countdown, isNewMatch) =>

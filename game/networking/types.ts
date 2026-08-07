@@ -55,6 +55,21 @@ export interface PingMsg {
 export interface LeaveMsg {
   type: "leave";
 }
+export interface PlayerInfoMsg {
+  type: "playerInfo";
+  displayName: string;
+  level: number;
+  skinId: string;
+  primaryWeapon: WeaponId;
+  secondaryWeapon: WeaponId;
+}
+export interface HostSettingsMsg {
+  type: "hostSettings";
+  roundsToWin: number;
+  headshotsEnabled: boolean;
+  healingEnabled: boolean;
+  infiniteBuilds: boolean;
+}
 
 export type ClientMessage =
   | ReadyMsg
@@ -65,7 +80,9 @@ export type ClientMessage =
   | ResetRequestMsg
   | RematchRequestMsg
   | PingMsg
-  | LeaveMsg;
+  | LeaveMsg
+  | PlayerInfoMsg
+  | HostSettingsMsg;
 
 // ---------- Server -> Client ----------
 
@@ -208,6 +225,27 @@ export interface ErrorMsg {
   type: "error";
   message: string;
 }
+/** Relay of the opponent's most recent `playerInfo` — sent whenever they
+ * (re)send it, and again to a newly-connecting client if the opponent's info
+ * was already on file so a late joiner doesn't miss it. */
+export interface OpponentInfoMsg {
+  type: "opponentInfo";
+  displayName: string;
+  level: number;
+  skinId: string;
+  primaryWeapon: WeaponId;
+  secondaryWeapon: WeaponId;
+}
+/** Current room match settings — sent to both clients whenever the host
+ * changes them, and to every client on connect so a late joiner sees the
+ * host's current choices instead of the hardcoded defaults. */
+export interface MatchSettingsMsg {
+  type: "matchSettings";
+  roundsToWin: number;
+  headshotsEnabled: boolean;
+  healingEnabled: boolean;
+  infiniteBuilds: boolean;
+}
 
 export type ServerMessage =
   | WelcomeMsg
@@ -229,7 +267,9 @@ export type ServerMessage =
   | OpponentReconnectedMsg
   | MatchResumeMsg
   | PongMsg
-  | ErrorMsg;
+  | ErrorMsg
+  | OpponentInfoMsg
+  | MatchSettingsMsg;
 
 export const ROOM_CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no ambiguous chars
 export const ROOM_CODE_LENGTH = 5;
