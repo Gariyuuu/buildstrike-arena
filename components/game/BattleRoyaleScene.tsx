@@ -4,6 +4,7 @@ import { useEffect, useMemo } from "react";
 import { useBRStore } from "@/stores/brStore";
 import { generateGroundLoot, generateChests, lootRegistry, groundLootLookup } from "@/game/br/loot";
 import { BRMap1 } from "@/components/game/BRMap1";
+import { BRMap2 } from "@/components/game/BRMap2";
 import { BRZone } from "@/components/game/BRZone";
 import { BRLoot } from "@/components/game/BRLoot";
 import { BRLocalPlayer } from "@/components/game/BRLocalPlayer";
@@ -17,6 +18,7 @@ export function BattleRoyaleScene({ domElement, shadows }: { domElement: React.R
   const phase = useBRStore((s) => s.phase);
   const agents = useBRStore((s) => s.agents);
   const resetSignal = useBRStore((s) => s.resetSignal);
+  const mapId = useBRStore((s) => s.mapId);
 
   // eslint-disable-next-line react-hooks/exhaustive-deps -- resetSignal deliberately forces regeneration on redeploy even though the generator functions take no args
   const groundLoot = useMemo(() => generateGroundLoot(), [resetSignal]);
@@ -43,7 +45,7 @@ export function BattleRoyaleScene({ domElement, shadows }: { domElement: React.R
 
   return (
     <group>
-      <BRMap1 shadows={shadows} />
+      {mapId === "desert" ? <BRMap2 shadows={shadows} /> : <BRMap1 shadows={shadows} />}
       <BRZone />
       <BRLoot groundLoot={groundLoot} chests={chests} />
       <BRLocalPlayer domElement={domElement} spawn={spawnFor(local.spawnAngle, local.spawnRadius)} chests={chests} />

@@ -7,6 +7,7 @@ import type { SquadSize } from "@/game/config/battleRoyale";
 import { generateRoster, playersAlive, squadCountAlive, LOCAL_AGENT_ID, type BRAgentSpawn } from "@/game/br/roster";
 
 export type BRPhase = "deploying" | "combat" | "victory" | "eliminated";
+export type BRMapId = "tiltedVibes" | "desert";
 
 export interface BRAgentState extends BRAgentSpawn {
   alive: boolean;
@@ -21,6 +22,7 @@ interface BRLocalWeaponSlot {
 interface BRMatchState {
   phase: BRPhase;
   squadSize: SquadSize;
+  mapId: BRMapId;
   agents: BRAgentState[];
   matchStartedAt: number; // performance.now() ms, baseline for zone timer
   resetSignal: number;
@@ -42,7 +44,7 @@ interface BRMatchState {
   killedBy: string | null;
   placement: number | null; // 1 = won, N = squads remaining when eliminated
 
-  deploy: (squadSize: SquadSize) => void;
+  deploy: (squadSize: SquadSize, mapId: BRMapId) => void;
   beginCombat: () => void;
   setLocal: (partial: Partial<Pick<BRMatchState, "health" | "shield" | "isDead" | "isReloading" | "isHealing" | "healProgress" | "selectedHeal" | "selectedSlot">>) => void;
   setSlot: (index: 0 | 1, slot: BRLocalWeaponSlot) => void;
@@ -62,6 +64,7 @@ const freshSlots = (): [BRLocalWeaponSlot, BRLocalWeaponSlot] => [
 export const useBRStore = create<BRMatchState>((set) => ({
   phase: "deploying",
   squadSize: 1,
+  mapId: "tiltedVibes",
   agents: [],
   matchStartedAt: 0,
   resetSignal: 0,
@@ -79,10 +82,11 @@ export const useBRStore = create<BRMatchState>((set) => ({
   killedBy: null,
   placement: null,
 
-  deploy: (squadSize) =>
+  deploy: (squadSize, mapId) =>
     set((s) => ({
       phase: "deploying",
       squadSize,
+      mapId,
       agents: generateRoster(squadSize).map((a) => ({ ...a, alive: true, health: 100 })),
       health: 100,
       shield: 0,

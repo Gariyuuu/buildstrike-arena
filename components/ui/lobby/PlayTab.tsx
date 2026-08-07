@@ -9,7 +9,7 @@ import { createRoomCode } from "@/game/networking/client";
 import type { BotDifficulty } from "@/game/config/bots";
 import { soundManager } from "@/game/audio/soundManager";
 import { LoadoutPicker } from "@/components/ui/lobby/LoadoutPicker";
-import { useBRStore } from "@/stores/brStore";
+import { useBRStore, type BRMapId } from "@/stores/brStore";
 import { SQUAD_SIZE_LABEL, type SquadSize } from "@/game/config/battleRoyale";
 
 const DIFFICULTIES: { id: BotDifficulty; label: string; desc: string }[] = [
@@ -17,6 +17,11 @@ const DIFFICULTIES: { id: BotDifficulty; label: string; desc: string }[] = [
   { id: "normal", label: "Normal", desc: "Balanced challenge" },
   { id: "hard", label: "Hard", desc: "Sharp aim, aggressive plays" },
   { id: "expert", label: "Expert", desc: "Near-perfect aim, optimal weapon picks" },
+];
+
+const BR_MAPS: { id: BRMapId; label: string; desc: string }[] = [
+  { id: "tiltedVibes", label: "Tilted Vibes", desc: "A dense cluster of leaning towers around the center" },
+  { id: "desert", label: "Sand Wastes", desc: "Open dunes, rock cover, and a canyon arena at the center" },
 ];
 
 export function PlayTab() {
@@ -31,6 +36,7 @@ export function PlayTab() {
   const [tab, setTab] = useState<"bot" | "online" | "training" | "br">("bot");
   const [joinCode, setJoinCode] = useState("");
   const [squadSize, setSquadSize] = useState<SquadSize>(1);
+  const [brMap, setBrMap] = useState<BRMapId>("tiltedVibes");
 
   function goPlay(mode: "bot" | "online" | "training") {
     soundManager.resume();
@@ -65,7 +71,7 @@ export function PlayTab() {
   function deployBattleRoyale() {
     soundManager.resume();
     soundManager.play("uiClick");
-    useBRStore.getState().deploy(squadSize);
+    useBRStore.getState().deploy(squadSize, brMap);
     setMode("battleRoyale");
     setScreen("playing");
   }
@@ -141,9 +147,26 @@ export function PlayTab() {
       {tab === "br" && (
         <div className="flex flex-col gap-4">
           <p className="text-sm text-white/60">
-            Drop into &quot;Tilted Vibes&quot; with up to 20 players — any seats you don&apos;t fill with friends get
-            filled with bots. Loot weapons and heals from the ground and chests, and stay inside the shrinking zone.
+            Up to 20 players — any seats you don&apos;t fill with friends get filled with bots. Loot weapons and
+            heals from the ground and chests, and stay inside the shrinking zone.
           </p>
+          <div>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-white/50">Map</p>
+            <div className="grid grid-cols-2 gap-2">
+              {BR_MAPS.map((m) => (
+                <button
+                  key={m.id}
+                  onClick={() => setBrMap(m.id)}
+                  title={m.desc}
+                  className={`rounded-lg border px-2 py-2 text-left text-sm font-semibold transition ${
+                    brMap === m.id ? "border-bs-cyan bg-bs-cyan/15 text-bs-cyan" : "border-white/10 bg-white/5 text-white/70 hover:border-white/25"
+                  }`}
+                >
+                  {m.label}
+                </button>
+              ))}
+            </div>
+          </div>
           <div>
             <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-white/50">Squad size</p>
             <div className="grid grid-cols-4 gap-2">

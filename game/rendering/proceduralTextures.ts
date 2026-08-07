@@ -61,3 +61,46 @@ export function createFloorGridTexture(): THREE.CanvasTexture {
   texture.colorSpace = THREE.SRGBColorSpace;
   return texture;
 }
+
+/** Sand variant for the desert BR map — mottled tan/orange speckling instead
+ * of a tech grid, same runtime-canvas approach. */
+export function createSandTexture(): THREE.CanvasTexture {
+  const size = 256;
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext("2d")!;
+
+  ctx.fillStyle = "#c9a875";
+  ctx.fillRect(0, 0, size, size);
+
+  const speckleColors = ["#b8935f", "#d4b587", "#a67c4a", "#e0c496"];
+  for (let i = 0; i < 900; i++) {
+    ctx.fillStyle = speckleColors[i % speckleColors.length];
+    const x = Math.random() * size;
+    const y = Math.random() * size;
+    const r = 0.6 + Math.random() * 2.2;
+    ctx.globalAlpha = 0.25 + Math.random() * 0.35;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+
+  // Faint wind-ripple streaks
+  ctx.strokeStyle = "rgba(120,90,50,0.12)";
+  ctx.lineWidth = 2;
+  for (let i = 0; i < 10; i++) {
+    const y = (i / 10) * size + Math.random() * 10;
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.bezierCurveTo(size * 0.3, y - 10, size * 0.7, y + 10, size, y);
+    ctx.stroke();
+  }
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+  texture.colorSpace = THREE.SRGBColorSpace;
+  return texture;
+}
