@@ -30,13 +30,15 @@ interface PlayerState {
   local: HudState;
   opponent: { health: number; shield: number; connected: boolean };
   hitMarker: number; // timestamp trigger for hit marker flash
+  hitMarkerCritical: boolean; // true if the hit that triggered hitMarker was a headshot
   damageFlash: number; // timestamp trigger for damage screen flash
+  damageFlashBearing: number | null; // radians, direction the damage came from (0 = ahead), for the directional indicator
   buildDenied: number; // timestamp trigger for build-rejected flash
   eliminationMessage: string | null;
   setLocal: (partial: Partial<HudState>) => void;
   setOpponent: (partial: Partial<PlayerState["opponent"]>) => void;
-  triggerHitMarker: () => void;
-  triggerDamageFlash: () => void;
+  triggerHitMarker: (critical?: boolean) => void;
+  triggerDamageFlash: (bearing?: number | null) => void;
   triggerBuildDenied: () => void;
   setEliminationMessage: (msg: string | null) => void;
   cycleWeapon: () => void;
@@ -70,13 +72,15 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   local: freshHud(),
   opponent: { health: MATCH_CONFIG.maxHealth, shield: 0, connected: false },
   hitMarker: 0,
+  hitMarkerCritical: false,
   damageFlash: 0,
+  damageFlashBearing: null,
   buildDenied: 0,
   eliminationMessage: null,
   setLocal: (partial) => set((s) => ({ local: { ...s.local, ...partial } })),
   setOpponent: (partial) => set((s) => ({ opponent: { ...s.opponent, ...partial } })),
-  triggerHitMarker: () => set({ hitMarker: performance.now() }),
-  triggerDamageFlash: () => set({ damageFlash: performance.now() }),
+  triggerHitMarker: (critical = false) => set({ hitMarker: performance.now(), hitMarkerCritical: critical }),
+  triggerDamageFlash: (bearing = null) => set({ damageFlash: performance.now(), damageFlashBearing: bearing }),
   triggerBuildDenied: () => set({ buildDenied: performance.now() }),
   setEliminationMessage: (msg) => set({ eliminationMessage: msg }),
   cycleWeapon: () => {

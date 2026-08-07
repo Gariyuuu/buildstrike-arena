@@ -42,6 +42,9 @@ export function WeaponView({
   const group = useRef<THREE.Group>(null);
   const reloadTilt = useRef(0);
   const switchScale = useRef(1);
+  const shellMesh = useRef<THREE.Mesh>(null);
+  const lastFireSeen = useRef(0);
+  const shellAge = useRef(1); // 1 = fully faded/inactive
 
   useFrame((_, dt) => {
     const now = performance.now();
@@ -49,6 +52,24 @@ export function WeaponView({
     const visible = t > 0 && now - t < 45;
     if (flashMesh.current) flashMesh.current.visible = visible;
     if (flashLight.current) flashLight.current.intensity = visible ? 6 : 0;
+
+    // Shell ejection: a single reused casing that pops sideways and fades
+    // out over ~0.3s, retriggered on every new shot.
+    if (t !== lastFireSeen.current) {
+      lastFireSeen.current = t;
+      shellAge.current = 0;
+    }
+    if (shellAge.current < 1) {
+      shellAge.current = Math.min(1, shellAge.current + dt / 0.3);
+      if (shellMesh.current) {
+        shellMesh.current.visible = true;
+        shellMesh.current.position.set(0.08 + shellAge.current * 0.12, 0.03 - shellAge.current * shellAge.current * 0.1, 0.02 - shellAge.current * 0.05);
+        shellMesh.current.rotation.set(shellAge.current * 6, shellAge.current * 3, 0);
+        (shellMesh.current.material as THREE.MeshStandardMaterial).opacity = 1 - shellAge.current;
+      }
+    } else if (shellMesh.current) {
+      shellMesh.current.visible = false;
+    }
 
     const switching = now < (switchFlashUntilRef.current ?? 0);
     const targetTilt = reloading ? -0.55 : 0;
@@ -95,6 +116,11 @@ export function WeaponView({
         <meshBasicMaterial color="#ffe08a" />
       </mesh>
       <pointLight ref={flashLight} position={[0, 0.01, preset.muzzleZ - 0.1]} intensity={0} color="#ffcf7a" distance={3} />
+      {/* Ejected shell casing */}
+      <mesh ref={shellMesh} visible={false}>
+        <cylinderGeometry args={[0.012, 0.012, 0.045, 6]} />
+        <meshStandardMaterial color="#c9a227" roughness={0.3} metalness={0.8} transparent />
+      </mesh>
     </group>
   );
 }

@@ -1,7 +1,9 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import { useSettingsStore } from "@/stores/settingsStore";
 import { usePlayerStore } from "@/stores/playerStore";
+import { combatFeel } from "@/game/state/combatFeel";
 
 export function Crosshair() {
   const size = useSettingsStore((s) => s.crosshairSize);
@@ -9,8 +11,22 @@ export function Crosshair() {
   const isBuildMode = usePlayerStore((s) => s.local.isBuildMode);
   const isReloading = usePlayerStore((s) => s.local.isReloading);
 
+  // Bloom is updated every frame by LocalPlayer (movement + recent fire),
+  // read here via its own rAF loop rather than a Zustand subscription so a
+  // continuously-changing value doesn't force a re-render elsewhere.
+  const [bloom, setBloom] = useState(0);
+  const rafRef = useRef(0);
+  useEffect(() => {
+    const loop = () => {
+      setBloom(combatFeel.crosshairBloom);
+      rafRef.current = requestAnimationFrame(loop);
+    };
+    rafRef.current = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, []);
+
   const color = isBuildMode ? "#33e6ff" : isReloading ? "#ff8a33" : "#ffffff";
-  const gap = size + 3;
+  const gap = size + 3 + bloom * 14;
   const thickness = 2;
   const len = size;
 

@@ -39,6 +39,7 @@ export function CombatHud() {
 
       <HealProgress />
       <DamageFlash />
+      <DirectionalDamageIndicator />
       <HitMarker />
       <BuildDeniedToast />
       <EliminationBanner />
@@ -139,13 +140,42 @@ function DamageFlash() {
 
 function HitMarker() {
   const trigger = usePlayerStore((s) => s.hitMarker);
+  const critical = usePlayerStore((s) => s.hitMarkerCritical);
   if (!trigger) return null;
+  const color = critical ? "#ffb020" : "#ffffff";
+  const size = critical ? 32 : 26;
   return (
     <div key={trigger} className="bs-hitmarker pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-      <svg width="26" height="26" viewBox="0 0 26 26">
-        <line x1="2" y1="2" x2="24" y2="24" stroke="#ffffff" strokeWidth="3" />
-        <line x1="24" y1="2" x2="2" y2="24" stroke="#ffffff" strokeWidth="3" />
+      <svg width={size} height={size} viewBox="0 0 26 26">
+        <line x1="2" y1="2" x2="24" y2="24" stroke={color} strokeWidth={critical ? 4 : 3} />
+        <line x1="24" y1="2" x2="2" y2="24" stroke={color} strokeWidth={critical ? 4 : 3} />
       </svg>
+    </div>
+  );
+}
+
+function DirectionalDamageIndicator() {
+  const trigger = usePlayerStore((s) => s.damageFlash);
+  const bearing = usePlayerStore((s) => s.damageFlashBearing);
+  if (!trigger || bearing === null) return null;
+  // bearing: 0 = directly ahead, +/-PI = behind. Rotate a glow arc to sit at
+  // the screen edge closest to where the damage came from.
+  const deg = (bearing * 180) / Math.PI;
+  return (
+    <div
+      key={trigger}
+      className="bs-directional-damage pointer-events-none absolute left-1/2 top-1/2 h-0 w-0"
+      style={{ transform: `translate(-50%, -50%) rotate(${deg}deg)` }}
+    >
+      <div
+        className="absolute left-1/2 -translate-x-1/2"
+        style={{
+          top: -230,
+          width: 140,
+          height: 90,
+          background: "radial-gradient(ellipse at 50% 100%, rgba(255,60,60,0.55), transparent 70%)",
+        }}
+      />
     </div>
   );
 }

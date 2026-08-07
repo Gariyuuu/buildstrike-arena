@@ -16,6 +16,7 @@ import { fireWeapon, computeDamage } from "@/game/weapons/hitscan";
 import { validatePlacement } from "@/game/building/grid";
 import { effectsBus } from "@/game/effects/effectsBus";
 import { positionTracker } from "@/game/state/positionTracker";
+import { combatFeel, bearingToWorldPoint } from "@/game/state/combatFeel";
 import { soundManager } from "@/game/audio/soundManager";
 import { usePointerLock } from "@/hooks/usePointerLock";
 import { useKeyboard, drainJustPressed } from "@/hooks/useKeyboard";
@@ -67,6 +68,8 @@ export function LocalPlayer({
   const yaw = useRef(spawn.yaw);
   const pitch = useRef(0);
   const recoilOffset = useRef(0);
+  const camShake = useRef(0);
+  const lastDamageFlashSeen = useRef(0);
   const velocityY = useRef(0);
   const grounded = useRef(false);
   const isAiming = useRef(false);
@@ -149,7 +152,9 @@ export function LocalPlayer({
     }
     const health = Math.max(0, store.local.health - remaining);
     usePlayerStore.getState().setLocal({ shield, health, isDead: health <= 0 });
-    usePlayerStore.getState().triggerDamageFlash();
+    const local = positionTracker.local;
+    const opp = positionTracker.opponent;
+    usePlayerStore.getState().triggerDamageFlash(bearingToWorldPoint(local.x, local.z, opp.x, opp.z));
     soundManager.play("takeDamage");
     if (health <= 0) {
       soundManager.play("elimination");
@@ -165,6 +170,16 @@ export function LocalPlayer({
     const phase = useMatchStore.getState().phase;
     const combatActive = phase === "combat" && !paused;
 
+    // Camera shake on taking damage — watches the damageFlash trigger
+    // (set both by bot-mode's applyLocalDamage and by the online
+    // damageApplied handler in OnlineDuelScene.tsx) instead of bumping
+    // camShake directly in two different files.
+    const currentDamageFlash = usePlayerStore.getState().damageFlash;
+    if (currentDamageFlash !== lastDamageFlashSeen.current) {
+      lastDamageFlashSeen.current = currentDamageFlash;
+      camShake.current = Math.min(1, camShake.current + 0.65);
+    }
+
     // ---- Look ----
     if (locked && !paused) {
       const d = consumeDelta();
@@ -174,6 +189,7 @@ export function LocalPlayer({
       pitch.current = THREE.MathUtils.clamp(pitch.current, -1.25, 1.25);
     }
     recoilOffset.current = THREE.MathUtils.damp(recoilOffset.current, 0, 8, dt);
+    combatFeel.localYaw = yaw.current;
 
     const euler = new THREE.Euler(pitch.current + recoilOffset.current, yaw.current, 0, "YXZ");
     const quat = new THREE.Quaternion().setFromEuler(euler);
@@ -260,6 +276,10 @@ export function LocalPlayer({
       }
       movingRef.current = speedFrac;
 
+      const recentlyFired = performance.now() - fireFlashRef.current < 250;
+      const targetBloom = Math.max(0, Math.min(1, speedFrac * 0.7 + (recentlyFired ? 0.5 : 0) - (isAiming.current ? 0.3 : 0)));
+      combatFeel.crosshairBloom = THREE.MathUtils.damp(combatFeel.crosshairBloom, targetBloom, 8, dt);
+
       const pos = rigidBody.current.translation();
       const bodyPos: Vec3 = [pos.x, pos.y, pos.z];
       positionTracker.local.set(pos.x, pos.y, pos.z);
@@ -343,6 +363,15 @@ export function LocalPlayer({
       if (hit) finalCamPos = eyePos.clone().addScaledVector(rayDir, Math.max(0.6, hit.toi - 0.3));
     }
 
+    // ---- Camera shake (fire recoil kick + hit-taken jolt), decaying each frame ----
+    camShake.current = Math.max(0, camShake.current - dt * 3.2);
+    if (camShake.current > 0.001) {
+      const s = camShake.current;
+      finalCamPos = finalCamPos.clone().add(
+        new THREE.Vector3((Math.random() - 0.5) * s * 0.18, (Math.random() - 0.5) * s * 0.14, (Math.random() - 0.5) * s * 0.08)
+      );
+    }
+
     camera.position.lerp(finalCamPos, 1 - Math.exp(-dt * 12));
     camera.quaternion.copy(quat);
     if (camera instanceof THREE.PerspectiveCamera) {
@@ -407,8 +436,8 @@ export function LocalPlayer({
         const dmg = computeDamage(weapon, g.headshot) * g.count;
         g.entry.takeDamage(dmg, "local");
         soundManager.play("hitConfirm");
-        usePlayerStore.getState().triggerHitMarker();
-        effectsBus.emit({ kind: "impact", point: [g.point.x, g.point.y, g.point.z], color: "#ff5555" });
+        usePlayerStore.getState().triggerHitMarker(g.headshot);
+        effectsBus.emit({ kind: "impact", point: [g.point.x, g.point.y, g.point.z], color: g.headshot ? "#ffb020" : "#ff5555" });
         effectsBus.emit({ kind: "damageNumber", point: [g.point.x, g.point.y + 0.3, g.point.z], amount: dmg, headshot: g.headshot });
         reportedHit = { kind: "player", headshot: g.headshot, pellets: g.count };
         // Client-side computed value, used only for profile stats/XP (see
@@ -421,6 +450,7 @@ export function LocalPlayer({
 
     adapter.reportFire(weapon.id, [origin.x, origin.y, origin.z], [forward.x, forward.y, forward.z], reportedHit);
     recoilOffset.current += weapon.recoil;
+    camShake.current = Math.min(1, camShake.current + weapon.recoil * 6);
   }
 
   function updateBuildGhost(bodyPos: Vec3, camPos: THREE.Vector3, forward: THREE.Vector3, kind: BuildKind) {

@@ -126,6 +126,21 @@ body {
   animation: bs-hitmarker 0.32s ease-out forwards;
 }
 
+@keyframes bs-directional-damage {
+  0% {
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+.bs-directional-damage {
+  animation: bs-directional-damage 0.8s ease-out forwards;
+}
+
 @keyframes bs-pulse {
   0%,
   100% {

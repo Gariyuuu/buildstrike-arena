@@ -12,6 +12,8 @@ import { usePlayerStore } from "@/stores/playerStore";
 import { useBuildsStore } from "@/stores/buildsStore";
 import { effectsBus } from "@/game/effects/effectsBus";
 import { soundManager } from "@/game/audio/soundManager";
+import { positionTracker } from "@/game/state/positionTracker";
+import { bearingToWorldPoint } from "@/game/state/combatFeel";
 import { LocalPlayer } from "@/components/game/LocalPlayer";
 import { RemotePlayer } from "@/components/game/RemotePlayer";
 
@@ -52,7 +54,9 @@ function handleMessage(msg: ServerMessage, netStateRef: React.RefObject<Opponent
       const target = translate(msg.target);
       if (target === "local") {
         usePlayerStore.getState().setLocal({ health: msg.health, shield: msg.shield });
-        usePlayerStore.getState().triggerDamageFlash();
+        const local = positionTracker.local;
+        const opp = positionTracker.opponent;
+        usePlayerStore.getState().triggerDamageFlash(bearingToWorldPoint(local.x, local.z, opp.x, opp.z));
         soundManager.play("takeDamage");
       } else {
         usePlayerStore.getState().setOpponent({ health: msg.health, shield: msg.shield });
