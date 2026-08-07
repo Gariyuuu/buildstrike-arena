@@ -22,6 +22,7 @@ const DIFFICULTIES: { id: BotDifficulty; label: string; desc: string }[] = [
 const BR_MAPS: { id: BRMapId; label: string; desc: string }[] = [
   { id: "tiltedVibes", label: "Tilted Vibes", desc: "A dense cluster of leaning towers around the center" },
   { id: "desert", label: "Sand Wastes", desc: "Open dunes, rock cover, and a canyon arena at the center" },
+  { id: "neonDistrict", label: "Neon District", desc: "A dense neon mega-city grid split by two wide avenues" },
 ];
 
 export function PlayTab() {
@@ -152,7 +153,7 @@ export function PlayTab() {
           </p>
           <div>
             <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-white/50">Map</p>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-3 gap-2">
               {BR_MAPS.map((m) => (
                 <button
                   key={m.id}

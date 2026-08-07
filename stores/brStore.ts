@@ -7,7 +7,7 @@ import type { SquadSize } from "@/game/config/battleRoyale";
 import { generateRoster, playersAlive, squadCountAlive, LOCAL_AGENT_ID, type BRAgentSpawn } from "@/game/br/roster";
 
 export type BRPhase = "deploying" | "combat" | "victory" | "eliminated";
-export type BRMapId = "tiltedVibes" | "desert";
+export type BRMapId = "tiltedVibes" | "desert" | "neonDistrict";
 
 export interface BRAgentState extends BRAgentSpawn {
   alive: boolean;

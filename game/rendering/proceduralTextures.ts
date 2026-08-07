@@ -104,3 +104,51 @@ export function createSandTexture(): THREE.CanvasTexture {
   texture.colorSpace = THREE.SRGBColorSpace;
   return texture;
 }
+
+/** Neon District (Tokyo mega-city) street texture — dark wet asphalt with a
+ * magenta/cyan-tinted lane grid instead of Tilted Vibes' cooler cyan-only
+ * tech grid, giving the third BR map its own visual identity. */
+export function createNeonAsphaltTexture(): THREE.CanvasTexture {
+  const size = 256;
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext("2d")!;
+
+  ctx.fillStyle = "#0c0d13";
+  ctx.fillRect(0, 0, size, size);
+
+  // Faint mottled noise for a wet-asphalt look.
+  for (let i = 0; i < 500; i++) {
+    ctx.fillStyle = Math.random() < 0.5 ? "#14151c" : "#0a0b10";
+    const x = Math.random() * size;
+    const y = Math.random() * size;
+    const r = 0.5 + Math.random() * 1.8;
+    ctx.globalAlpha = 0.3;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+
+  // Lane-marking grid, alternating magenta/cyan for a neon-reflection feel.
+  const step = size / 8;
+  for (let i = 1; i < 8; i++) {
+    ctx.strokeStyle = i % 2 === 0 ? "rgba(255,46,196,0.16)" : "rgba(51,230,255,0.14)";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(i * step, 0);
+    ctx.lineTo(i * step, size);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(0, i * step);
+    ctx.lineTo(size, i * step);
+    ctx.stroke();
+  }
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+  texture.colorSpace = THREE.SRGBColorSpace;
+  return texture;
+}

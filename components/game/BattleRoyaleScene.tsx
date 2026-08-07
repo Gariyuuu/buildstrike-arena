@@ -5,6 +5,7 @@ import { useBRStore } from "@/stores/brStore";
 import { generateGroundLoot, generateChests, lootRegistry, groundLootLookup } from "@/game/br/loot";
 import { BRMap1 } from "@/components/game/BRMap1";
 import { BRMap2 } from "@/components/game/BRMap2";
+import { BRMap3 } from "@/components/game/BRMap3";
 import { BRZone } from "@/components/game/BRZone";
 import { BRLoot } from "@/components/game/BRLoot";
 import { BRLocalPlayer } from "@/components/game/BRLocalPlayer";
@@ -45,7 +46,7 @@ export function BattleRoyaleScene({ domElement, shadows }: { domElement: React.R
 
   return (
     <group>
-      {mapId === "desert" ? <BRMap2 shadows={shadows} /> : <BRMap1 shadows={shadows} />}
+      {mapId === "desert" ? <BRMap2 shadows={shadows} /> : mapId === "neonDistrict" ? <BRMap3 shadows={shadows} /> : <BRMap1 shadows={shadows} />}
       <BRZone />
       <BRLoot groundLoot={groundLoot} chests={chests} />
       <BRLocalPlayer domElement={domElement} spawn={spawnFor(local.spawnAngle, local.spawnRadius)} chests={chests} />
