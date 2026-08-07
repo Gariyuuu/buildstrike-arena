@@ -6,6 +6,7 @@ import { HEALING } from "@/game/config/healing";
 import { MATCH_CONFIG } from "@/game/config/match";
 import type { BuildKind } from "@/game/config/builds";
 import { useLoadoutStore } from "@/stores/loadoutStore";
+import { EMOTE_DURATION_MS } from "@/game/animation/emotes";
 
 export type SelectedItem = WeaponId | "shieldPotion" | "medkit";
 
@@ -35,12 +36,15 @@ interface PlayerState {
   damageFlashBearing: number | null; // radians, direction the damage came from (0 = ahead), for the directional indicator
   buildDenied: number; // timestamp trigger for build-rejected flash
   eliminationMessage: string | null;
+  /** Cosmetic id of the emote currently playing, or null — local-only, not synced to the opponent yet (see DECISIONS.md). */
+  activeEmote: string | null;
   setLocal: (partial: Partial<HudState>) => void;
   setOpponent: (partial: Partial<PlayerState["opponent"]>) => void;
   triggerHitMarker: (critical?: boolean) => void;
   triggerDamageFlash: (bearing?: number | null) => void;
   triggerBuildDenied: () => void;
   setEliminationMessage: (msg: string | null) => void;
+  playEmote: (id: string) => void;
   cycleWeapon: () => void;
   resetForRound: () => void;
 }
@@ -77,12 +81,21 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   damageFlashBearing: null,
   buildDenied: 0,
   eliminationMessage: null,
+  activeEmote: null,
   setLocal: (partial) => set((s) => ({ local: { ...s.local, ...partial } })),
   setOpponent: (partial) => set((s) => ({ opponent: { ...s.opponent, ...partial } })),
   triggerHitMarker: (critical = false) => set({ hitMarker: performance.now(), hitMarkerCritical: critical }),
   triggerDamageFlash: (bearing = null) => set({ damageFlash: performance.now(), damageFlashBearing: bearing }),
   triggerBuildDenied: () => set({ buildDenied: performance.now() }),
   setEliminationMessage: (msg) => set({ eliminationMessage: msg }),
+  playEmote: (id) => {
+    set({ activeEmote: id });
+    setTimeout(() => {
+      // Only clear if this is still the same emote (a fresh one triggered
+      // in the meantime should keep playing its own full duration).
+      if (get().activeEmote === id) set({ activeEmote: null });
+    }, EMOTE_DURATION_MS);
+  },
   cycleWeapon: () => {
     const { primary, secondary } = useLoadoutStore.getState();
     const next = get().local.weapon === primary ? secondary : primary;

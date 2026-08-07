@@ -11,13 +11,14 @@ export type WeaponId =
   | "tacticalShotgun"
   | "smg"
   | "pistol"
-  | "heavyPistol";
+  | "heavyPistol"
+  | "melee";
 
-export type WeaponClass = "primary" | "secondary";
+export type WeaponClass = "primary" | "secondary" | "melee";
 /** Which rendering silhouette WeaponView uses — several weapons share a look. */
-export type WeaponVisual = "rifle" | "shotgun" | "pistol" | "marksman";
+export type WeaponVisual = "rifle" | "shotgun" | "pistol" | "marksman" | "melee";
 /** Which synthesized sound archetype soundManager reuses for this weapon. */
-export type WeaponSoundProfile = "rifle" | "shotgun" | "pistol";
+export type WeaponSoundProfile = "rifle" | "shotgun" | "pistol" | "melee";
 
 export interface WeaponConfig {
   id: WeaponId;
@@ -179,7 +180,34 @@ export const WEAPONS: Record<WeaponId, WeaponConfig> = {
     recoil: 0.045,
     headshotMultiplier: 1.5,
   },
+  // Always available, not part of the primary/secondary loadout (see
+  // MELEE_CONFIG / LocalPlayer's dedicated performMeleeAttack — it doesn't
+  // go through the ammo/reload pipeline at all). Kept as a real WeaponId
+  // purely so it can ride the existing FireMsg/reportFire wire protocol and
+  // the server's already-generic WEAPONS[msg.weapon] damage lookup, exactly
+  // like the 8 firearms above — zero server changes needed. Deliberately
+  // much weaker than any firearm (spec: "Do not make melee stronger than
+  // firearms").
+  melee: {
+    id: "melee",
+    name: "Trench Pick",
+    weaponClass: "melee",
+    visual: "melee",
+    soundProfile: "melee",
+    fireRate: 1.3,
+    automatic: false,
+    damage: 25,
+    pellets: 1,
+    spread: 0,
+    magazineSize: 1,
+    reloadTime: 0,
+    range: 2.4,
+    recoil: 0.02,
+    headshotMultiplier: 1,
+  },
 };
+
+export const MELEE_ID: WeaponId = "melee";
 
 /** All 8 weapon ids in a canonical display order — for loadout-selector/reference UI, NOT what's equipped in a match (see loadoutStore for that). */
 export const WEAPON_ORDER: WeaponId[] = [

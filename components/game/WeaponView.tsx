@@ -19,6 +19,10 @@ const VISUAL_PRESETS: Record<WeaponVisual, VisualPreset> = {
   shotgun: { body: [0.1, 0.12, 0.55], barrelLen: 0.35, barrelRadius: 0.045, barrelZ: 0.32, muzzleZ: 0.52, scope: false },
   pistol: { body: [0.07, 0.08, 0.32], barrelLen: 0.18, barrelRadius: 0.02, barrelZ: 0.2, muzzleZ: 0.32, scope: false },
   marksman: { body: [0.08, 0.09, 0.85], barrelLen: 0.55, barrelRadius: 0.022, barrelZ: 0.5, muzzleZ: 0.8, scope: true },
+  // Not actually rendered by WeaponView — melee has its own dedicated
+  // PickaxeView (see components/game/PickaxeView.tsx) — this entry exists
+  // only so WEAPONS' visual field stays exhaustively typed.
+  melee: { body: [0.05, 0.05, 0.3], barrelLen: 0.1, barrelRadius: 0.01, barrelZ: 0.15, muzzleZ: 0.2, scope: false },
 };
 
 export function WeaponView({

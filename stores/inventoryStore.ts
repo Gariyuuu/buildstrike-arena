@@ -2,7 +2,7 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { DEFAULT_SKIN_ID, DEFAULT_WRAP_ID, type CosmeticCategory } from "@/game/config/cosmetics";
+import { DEFAULT_SKIN_ID, DEFAULT_WRAP_ID, DEFAULT_PICKAXE_ID, type CosmeticCategory } from "@/game/config/cosmetics";
 
 const DEFAULT_BANNER_ID = "banner-default";
 const DEFAULT_ICON_ID = "icon-default";
@@ -10,7 +10,7 @@ const DEFAULT_ICON_ID = "icon-default";
 export type EquippedSlots = {
   skin: string;
   backAccessory: string | null;
-  pickaxe: string | null;
+  pickaxe: string;
   weaponWrap: string;
   emote: (string | null)[]; // up to 4 equipped emote slots
   banner: string;
@@ -26,12 +26,12 @@ interface InventoryState {
   reset: () => void;
 }
 
-const STARTER_OWNED = [DEFAULT_SKIN_ID, DEFAULT_WRAP_ID, DEFAULT_BANNER_ID, DEFAULT_ICON_ID];
+const STARTER_OWNED = [DEFAULT_SKIN_ID, DEFAULT_WRAP_ID, DEFAULT_PICKAXE_ID, DEFAULT_BANNER_ID, DEFAULT_ICON_ID];
 
 const freshEquipped = (): EquippedSlots => ({
   skin: DEFAULT_SKIN_ID,
   backAccessory: null,
-  pickaxe: null,
+  pickaxe: DEFAULT_PICKAXE_ID,
   weaponWrap: DEFAULT_WRAP_ID,
   emote: [null, null, null, null],
   banner: DEFAULT_BANNER_ID,
@@ -55,6 +55,7 @@ export const useInventoryStore = create<InventoryState>()(
           }
           if (category === "skin") return { equipped: { ...s.equipped, skin: id ?? DEFAULT_SKIN_ID } };
           if (category === "weaponWrap") return { equipped: { ...s.equipped, weaponWrap: id ?? DEFAULT_WRAP_ID } };
+          if (category === "pickaxe") return { equipped: { ...s.equipped, pickaxe: id ?? DEFAULT_PICKAXE_ID } };
           if (category === "banner") return { equipped: { ...s.equipped, banner: id ?? DEFAULT_BANNER_ID } };
           if (category === "icon") return { equipped: { ...s.equipped, icon: id ?? DEFAULT_ICON_ID } };
           return { equipped: { ...s.equipped, [category]: id } };

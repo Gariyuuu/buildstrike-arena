@@ -5,6 +5,7 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { CharacterModel } from "@/components/game/CharacterModel";
 import { useInventoryStore } from "@/stores/inventoryStore";
+import { usePlayerStore } from "@/stores/playerStore";
 import { SKINS, BACK_ACCESSORIES, DEFAULT_SKIN_ID } from "@/game/config/cosmetics";
 
 function IdleCharacter() {
@@ -13,10 +14,12 @@ function IdleCharacter() {
   const skinDef = SKINS[equippedSkinId] ?? SKINS[DEFAULT_SKIN_ID];
   const backDef = equippedBackId ? BACK_ACCESSORIES[equippedBackId] : null;
   const movingRef = useRef(0);
+  const emoteRef = useRef<string | null>(null);
   const group = useRef<THREE.Group>(null);
 
   useFrame((state) => {
-    if (group.current) group.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.4) * 0.35;
+    emoteRef.current = usePlayerStore.getState().activeEmote;
+    if (group.current && !emoteRef.current) group.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.4) * 0.35;
   });
 
   return (
@@ -25,6 +28,7 @@ function IdleCharacter() {
         color={skinDef.skin.jacketColor ?? "#3aa0c9"}
         accent={skinDef.skin.accentColor ?? "#33e6ff"}
         movingRef={movingRef}
+        emoteRef={emoteRef}
         skin={skinDef.skin}
         backAccessory={backDef}
         shadows={false}

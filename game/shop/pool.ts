@@ -1,11 +1,11 @@
-import { SKINS, WEAPON_WRAPS, BACK_ACCESSORIES, EMOTES, DEFAULT_WRAP_ID, type Rarity, type CosmeticCategory } from "@/game/config/cosmetics";
+import { SKINS, WEAPON_WRAPS, BACK_ACCESSORIES, EMOTES, PICKAXES, DEFAULT_WRAP_ID, DEFAULT_PICKAXE_ID, type Rarity, type CosmeticCategory } from "@/game/config/cosmetics";
 
 export interface ShopItem {
   id: string;
   name: string;
   rarity: Rarity;
   description: string;
-  category: Extract<CosmeticCategory, "skin" | "weaponWrap" | "backAccessory" | "emote">;
+  category: Extract<CosmeticCategory, "skin" | "weaponWrap" | "backAccessory" | "emote" | "pickaxe">;
   previewColor: string;
 }
 
@@ -37,6 +37,10 @@ export function fullShopPool(): ShopItem[] {
   }
   for (const e of Object.values(EMOTES)) {
     items.push({ id: e.id, name: e.name, rarity: e.rarity, description: e.description, category: "emote", previewColor: "#33e6ff" });
+  }
+  for (const p of Object.values(PICKAXES)) {
+    if (p.id === DEFAULT_PICKAXE_ID) continue;
+    items.push({ id: p.id, name: p.name, rarity: p.rarity, description: p.description, category: "pickaxe", previewColor: p.headColor });
   }
   return items;
 }

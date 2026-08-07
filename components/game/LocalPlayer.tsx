@@ -35,6 +35,7 @@ import type { GameAdapter, Vec3 } from "@/game/networking/adapter";
 import { CharacterModel } from "@/components/game/CharacterModel";
 import { weaponArmPose, type ArmPoseId } from "@/game/animation/pose";
 import { WeaponView } from "@/components/game/WeaponView";
+import { PickaxeView } from "@/components/game/PickaxeView";
 import { BuildGhost, type BuildGhostState } from "@/components/game/BuildGhost";
 
 const BUILD_KEYS: Record<string, BuildKind> = { z: "wall", x: "floor", c: "ramp" };
@@ -64,6 +65,7 @@ export function LocalPlayer({
   const fireFlashRef = useRef(0);
   const armPoseRef = useRef<ArmPoseId>("none");
   const hitReactRef = useRef(0);
+  const emoteRef = useRef<string | null>(null);
 
   const yaw = useRef(spawn.yaw);
   const pitch = useRef(0);
@@ -76,6 +78,8 @@ export function LocalPlayer({
 
   const nextFireTime = useRef(0);
   const burstShotsRemaining = useRef(0);
+  const nextMeleeTime = useRef(0);
+  const meleeSwingRef = useRef(0);
   const reloadEndTime = useRef(0);
   const placementCooldownEnd = useRef(0);
   const healEndTime = useRef(0);
@@ -203,15 +207,19 @@ export function LocalPlayer({
 
     const local = usePlayerStore.getState().local;
     hitReactRef.current = usePlayerStore.getState().damageFlash;
-    armPoseRef.current = local.isHealing
-      ? local.selected === "shieldPotion"
-        ? "shield"
-        : "heal"
-      : local.isBuildMode
-        ? "build"
-        : local.isReloading
-          ? "reload"
-          : weaponArmPose(local.weapon);
+    emoteRef.current = usePlayerStore.getState().activeEmote;
+    armPoseRef.current =
+      performance.now() - meleeSwingRef.current < 350
+        ? "melee"
+        : local.isHealing
+          ? local.selected === "shieldPotion"
+            ? "shield"
+            : "heal"
+          : local.isBuildMode
+            ? "build"
+            : local.isReloading
+              ? "reload"
+              : weaponArmPose(local.weapon);
 
     if (!paused && !local.isDead) {
       if (combatActive) {
@@ -239,6 +247,9 @@ export function LocalPlayer({
         }
         if (justPressed.includes("r") && !local.isBuildMode) {
           tryReload();
+        }
+        if (justPressed.includes("v")) {
+          performMeleeAttack(camera.position as THREE.Vector3, forward);
         }
       }
 
@@ -453,6 +464,54 @@ export function LocalPlayer({
     camShake.current = Math.min(1, camShake.current + weapon.recoil * 6);
   }
 
+  /**
+   * Cosmetic melee tool: destroys builds and deals very low damage to
+   * players (see MELEE_ID in game/config/weapons.ts — deliberately much
+   * weaker than any firearm). Kept as its own function rather than
+   * reusing fireLocalWeapon because melee has no ammo/reload/magazine —
+   * it still rides the same FireMsg/reportFire wire protocol so the
+   * server's existing generic WEAPONS[msg.weapon] damage lookup needs no
+   * changes.
+   */
+  function performMeleeAttack(origin: THREE.Vector3, forward: THREE.Vector3) {
+    const now = performance.now();
+    if (now < nextMeleeTime.current) return;
+    const weapon = WEAPONS.melee;
+    nextMeleeTime.current = now + 1000 / weapon.fireRate;
+    meleeSwingRef.current = now;
+    soundManager.play("meleeSwing");
+
+    const { hits, tracerEnd } = fireWeapon(weapon, origin, forward, registry.all(), LOCAL_ID);
+    void tracerEnd; // melee has no tracer — reuses fireWeapon purely for its raycast/spread logic
+
+    const groups = new Map<string, { entry: DamageableEntry; count: number; headshot: boolean; point: THREE.Vector3 }>();
+    for (const h of hits) {
+      const g = groups.get(h.entry.id);
+      if (g) g.count += 1;
+      else groups.set(h.entry.id, { entry: h.entry, count: 1, headshot: h.headshot, point: h.point });
+    }
+
+    let reportedHit: Parameters<GameAdapter["reportFire"]>[3] | undefined;
+    for (const g of groups.values()) {
+      if (g.entry.kind === "build") {
+        g.entry.takeDamage(weapon.damage, "local");
+        soundManager.play("meleeHit");
+        effectsBus.emit({ kind: "impact", point: [g.point.x, g.point.y, g.point.z], color: "#8a94a8" });
+        if (!reportedHit) reportedHit = { kind: "build", buildId: g.entry.id, pellets: 1 };
+      } else {
+        g.entry.takeDamage(weapon.damage, "local");
+        soundManager.play("meleeHit");
+        usePlayerStore.getState().triggerHitMarker(false);
+        effectsBus.emit({ kind: "impact", point: [g.point.x, g.point.y, g.point.z], color: "#ff5555" });
+        effectsBus.emit({ kind: "damageNumber", point: [g.point.x, g.point.y + 0.3, g.point.z], amount: weapon.damage, headshot: false });
+        reportedHit = { kind: "player", headshot: false, pellets: 1 };
+        useMatchStore.getState().addDamageDealt(weapon.damage);
+        useProfileStore.getState().addWeaponDamage(weapon.id, weapon.damage);
+      }
+    }
+    adapter.reportFire(weapon.id, [origin.x, origin.y, origin.z], [forward.x, forward.y, forward.z], reportedHit);
+  }
+
   function updateBuildGhost(bodyPos: Vec3, camPos: THREE.Vector3, forward: THREE.Vector3, kind: BuildKind) {
     const hit = castWorldRay(rapier, world, camPos, forward, BUILD_CONFIG.placeRange);
     if (!hit) {
@@ -541,6 +600,7 @@ export function LocalPlayer({
   const equippedSkinId = useInventoryStore((s) => s.equipped.skin);
   const equippedWrapId = useInventoryStore((s) => s.equipped.weaponWrap);
   const equippedBackId = useInventoryStore((s) => s.equipped.backAccessory);
+  const equippedPickaxeId = useInventoryStore((s) => s.equipped.pickaxe);
   const skinDef = SKINS[equippedSkinId ?? DEFAULT_SKIN_ID] ?? SKINS[DEFAULT_SKIN_ID];
   const wrapDef = WEAPON_WRAPS[equippedWrapId ?? DEFAULT_WRAP_ID] ?? WEAPON_WRAPS[DEFAULT_WRAP_ID];
   const backDef = equippedBackId ? BACK_ACCESSORIES[equippedBackId] : null;
@@ -564,6 +624,7 @@ export function LocalPlayer({
           armPoseRef={armPoseRef}
           fireReactRef={fireFlashRef}
           hitReactRef={hitReactRef}
+          emoteRef={emoteRef}
           eliminated={isDead}
           skin={skinDef.skin}
           backAccessory={backDef}
@@ -576,6 +637,7 @@ export function LocalPlayer({
           accent={accent}
           wrapColors={wrapDef}
         />
+        <PickaxeView pickaxeId={equippedPickaxeId} meleeSwingRef={meleeSwingRef} />
       </group>
       <BuildGhost stateRef={ghost} />
     </group>

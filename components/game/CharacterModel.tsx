@@ -11,6 +11,7 @@ import {
   type ArmPoseId,
   type LocomotionId,
 } from "@/game/animation/pose";
+import { EMOTE_POSES, type OscillationChannel } from "@/game/animation/emotes";
 import type { BackAccessoryDefinition } from "@/game/config/cosmetics";
 
 /** Full cosmetic material/color override — every field optional, falls back to the base color/accent. */
@@ -54,6 +55,7 @@ export function CharacterModel({
   armPoseRef,
   fireReactRef,
   hitReactRef,
+  emoteRef,
   eliminated = false,
   victory = false,
 }: {
@@ -69,6 +71,8 @@ export function CharacterModel({
   armPoseRef?: React.RefObject<ArmPoseId>;
   fireReactRef?: React.RefObject<number>; // timestamp of last shot fired
   hitReactRef?: React.RefObject<number>; // timestamp of last damage taken
+  /** Emote cosmetic id (see game/config/cosmetics.ts EMOTES) or null — while set, overrides the normal arm/locomotion blend with game/animation/emotes.ts's pose data. */
+  emoteRef?: React.RefObject<string | null>;
   eliminated?: boolean;
   victory?: boolean;
 }) {
@@ -138,7 +142,30 @@ export function CharacterModel({
     const targetCollapse = eliminated ? 1 : 0;
     c.collapse = damp(c.collapse, targetCollapse, 6, dt);
 
-    if (victory) {
+    const emoteId = emoteRef?.current ?? null;
+    const emotePose = emoteId ? EMOTE_POSES[emoteId] : null;
+
+    if (emotePose) {
+      const t = now / 1000;
+      const osc = (channel: OscillationChannel) => {
+        const o = emotePose.oscillations?.find((o) => o.channel === channel);
+        if (!o) return 0;
+        const raw = o.wave === "square" ? Math.sign(Math.sin(t * o.frequency * Math.PI * 2)) : Math.sin(t * o.frequency * Math.PI * 2);
+        return raw * o.amplitude;
+      };
+      c.shoulderXL = damp(c.shoulderXL, emotePose.shoulderXL + osc("shoulderXL"), ANIM_DAMPING.arms, dt);
+      c.shoulderXR = damp(c.shoulderXR, emotePose.shoulderXR + osc("shoulderXR"), ANIM_DAMPING.arms, dt);
+      c.shoulderZL = damp(c.shoulderZL, emotePose.shoulderZL + osc("shoulderZL"), ANIM_DAMPING.arms, dt);
+      c.shoulderZR = damp(c.shoulderZR, emotePose.shoulderZR + osc("shoulderZR"), ANIM_DAMPING.arms, dt);
+      c.elbowXL = damp(c.elbowXL, emotePose.elbowXL + osc("elbowXL"), ANIM_DAMPING.arms, dt);
+      c.elbowXR = damp(c.elbowXR, emotePose.elbowXR + osc("elbowXR"), ANIM_DAMPING.arms, dt);
+      c.spineLean = damp(c.spineLean, emotePose.spineLean + osc("spineLean"), ANIM_DAMPING.spine, dt);
+      c.hipDrop = damp(c.hipDrop, emotePose.hipDrop + osc("hipDrop"), ANIM_DAMPING.locomotion, dt);
+      c.headPitch = damp(c.headPitch, emotePose.headPitch + osc("headPitch"), ANIM_DAMPING.headLook, dt);
+      c.legAmp = damp(c.legAmp, 0, ANIM_DAMPING.locomotion, dt);
+      c.kneeL = damp(c.kneeL, 0, ANIM_DAMPING.locomotion, dt);
+      c.kneeR = damp(c.kneeR, 0, ANIM_DAMPING.locomotion, dt);
+    } else if (victory) {
       c.shoulderXL = damp(c.shoulderXL, -2.6, ANIM_DAMPING.arms, dt);
       c.shoulderXR = damp(c.shoulderXR, -2.6, ANIM_DAMPING.arms, dt);
       c.shoulderZL = damp(c.shoulderZL, 0.3, ANIM_DAMPING.arms, dt);
@@ -156,11 +183,13 @@ export function CharacterModel({
       c.spineLean = damp(c.spineLean, loco.spineLean + arm.spineLean + hitKick * 0.35, ANIM_DAMPING.spine, dt);
     }
 
-    c.legAmp = damp(c.legAmp, loco.legAmplitude, ANIM_DAMPING.locomotion, dt);
-    c.hipDrop = damp(c.hipDrop, loco.hipDrop, ANIM_DAMPING.locomotion, dt);
-    c.kneeL = damp(c.kneeL, loco.kneeBend[0], ANIM_DAMPING.locomotion, dt);
-    c.kneeR = damp(c.kneeR, loco.kneeBend[1], ANIM_DAMPING.locomotion, dt);
-    c.headPitch = damp(c.headPitch, armPoseId === "build" || armPoseId === "reload" ? 0.18 : 0, ANIM_DAMPING.headLook, dt);
+    if (!emotePose) {
+      c.legAmp = damp(c.legAmp, loco.legAmplitude, ANIM_DAMPING.locomotion, dt);
+      c.hipDrop = damp(c.hipDrop, loco.hipDrop, ANIM_DAMPING.locomotion, dt);
+      c.kneeL = damp(c.kneeL, loco.kneeBend[0], ANIM_DAMPING.locomotion, dt);
+      c.kneeR = damp(c.kneeR, loco.kneeBend[1], ANIM_DAMPING.locomotion, dt);
+      c.headPitch = damp(c.headPitch, armPoseId === "build" || armPoseId === "reload" ? 0.18 : 0, ANIM_DAMPING.headLook, dt);
+    }
 
     // ---- Leg walk cycle (procedural swing on top of the blended amplitude) ----
     phase.current += dt * (5 + speed * 5);

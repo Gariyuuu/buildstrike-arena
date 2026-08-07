@@ -156,6 +156,24 @@ export const BACK_ACCESSORIES: Record<string, BackAccessoryDefinition> = {
   "back-riotshield": { id: "back-riotshield", name: "Riot Plate", rarity: "rare", description: "A slung defensive plate.", color: "#ff8a33", shape: "shield" },
 };
 
+export interface PickaxeDefinition {
+  id: string;
+  name: string;
+  rarity: Rarity;
+  description: string;
+  headColor: string;
+  handleColor: string;
+}
+
+/** Cosmetic skins for the melee tool (see game/config/weapons.ts MELEE_ID) — appearance only, never changes its damage/range/cooldown. */
+export const PICKAXES: Record<string, PickaxeDefinition> = {
+  "pick-default": { id: "pick-default", name: "Trench Pick", rarity: "common", description: "Standard-issue melee tool.", headColor: "#6b7280", handleColor: "#3a2e24" },
+  "pick-crimson": { id: "pick-crimson", name: "Blood Iron", rarity: "rare", description: "A rust-red forged head.", headColor: "#7a1a0d", handleColor: "#1c1c1c" },
+  "pick-gold": { id: "pick-gold", name: "Golden Pick", rarity: "legendary", description: "Purely ceremonial. Still swings just as hard.", headColor: "#c9a227", handleColor: "#5c4527" },
+  "pick-neon": { id: "pick-neon", name: "Volt Edge", rarity: "epic", description: "Etched with a glowing edge.", headColor: "#33e6ff", handleColor: "#1a1a2e" },
+};
+export const DEFAULT_PICKAXE_ID = "pick-default";
+
 export interface EmoteDefinition {
   id: string;
   name: string;

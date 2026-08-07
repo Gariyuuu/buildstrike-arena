@@ -2,7 +2,8 @@
 
 import { useMemo, useState } from "react";
 import { useInventoryStore } from "@/stores/inventoryStore";
-import { SKINS, WEAPON_WRAPS, BACK_ACCESSORIES, EMOTES, BANNERS, ICONS, RARITY_COLOR, type CosmeticCategory, type Rarity } from "@/game/config/cosmetics";
+import { usePlayerStore } from "@/stores/playerStore";
+import { SKINS, WEAPON_WRAPS, BACK_ACCESSORIES, EMOTES, BANNERS, ICONS, PICKAXES, RARITY_COLOR, type CosmeticCategory, type Rarity } from "@/game/config/cosmetics";
 import { soundManager } from "@/game/audio/soundManager";
 
 interface LockerItem {
@@ -17,6 +18,7 @@ interface LockerItem {
 const CATEGORIES: { id: CosmeticCategory; label: string }[] = [
   { id: "skin", label: "Character" },
   { id: "weaponWrap", label: "Weapon Wrap" },
+  { id: "pickaxe", label: "Pickaxe" },
   { id: "backAccessory", label: "Back" },
   { id: "emote", label: "Emote" },
   { id: "banner", label: "Banner" },
@@ -29,6 +31,8 @@ function itemsForCategory(category: CosmeticCategory): LockerItem[] {
       return Object.values(SKINS).map((s) => ({ id: s.id, name: s.name, rarity: s.rarity, description: s.description, previewColor: s.skin.jacketColor ?? "#3aa0c9" }));
     case "weaponWrap":
       return Object.values(WEAPON_WRAPS).map((w) => ({ id: w.id, name: w.name, rarity: w.rarity, description: w.description, previewColor: w.bodyColor }));
+    case "pickaxe":
+      return Object.values(PICKAXES).map((p) => ({ id: p.id, name: p.name, rarity: p.rarity, description: p.description, previewColor: p.headColor }));
     case "backAccessory":
       return Object.values(BACK_ACCESSORIES).map((b) => ({ id: b.id, name: b.name, rarity: b.rarity, description: b.description, previewColor: b.color }));
     case "emote":
@@ -101,6 +105,7 @@ export function LockerTab() {
                     onClick={() => {
                       setSelected(item);
                       soundManager.play("uiClick");
+                      if (category === "emote") usePlayerStore.getState().playEmote(item.id);
                     }}
                     className={`flex flex-col items-center gap-1.5 rounded-lg border p-2.5 text-center transition ${
                       isSelected ? "border-bs-cyan bg-bs-cyan/10" : "border-white/10 bg-black/25 hover:border-white/25"

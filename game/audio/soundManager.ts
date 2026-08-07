@@ -24,6 +24,9 @@ type SoundId =
   | "coinGain"
   | "purchase"
   | "equip"
+  | "meleeSwing"
+  | "meleeHit"
+  | "emote"
   | "uiClick";
 
 class SoundManager {
@@ -153,6 +156,16 @@ class SoundManager {
       case "equip":
         this.playClick(ctx, 700, 0.03, vol * 0.45);
         this.playPercussiveTone(ctx, 440, 0.08, "sine", vol * 0.3, 0.03);
+        break;
+      case "meleeSwing":
+        this.playNoiseBurst(ctx, 0.1, vol * 0.25);
+        break;
+      case "meleeHit":
+        this.playPercussiveTone(ctx, 150, 0.12, "square", vol * 0.5);
+        this.playNoiseBurst(ctx, 0.08, vol * 0.35);
+        break;
+      case "emote":
+        [523, 659].forEach((f, i) => this.playPercussiveTone(ctx, f, 0.18, "sine", vol * 0.35, i * 0.1));
         break;
     }
   }

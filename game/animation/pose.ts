@@ -6,7 +6,7 @@
 
 import { WEAPONS, type WeaponId } from "@/game/config/weapons";
 
-export type ArmPoseId = "none" | "rifle" | "shotgun" | "pistol" | "reload" | "heal" | "shield" | "build";
+export type ArmPoseId = "none" | "rifle" | "shotgun" | "pistol" | "reload" | "heal" | "shield" | "build" | "melee";
 
 /** All 8 weapons share one of these 3 base holding poses via their `visual` class (marksman reuses the rifle stance — both are two-handed long guns). */
 export function weaponArmPose(weaponId: WeaponId): ArmPoseId {
@@ -35,6 +35,7 @@ export const ARM_POSES: Record<ArmPoseId, ArmPoseTarget> = {
   heal: { shoulderX: [0.3, 1.15], shoulderZ: [0.15, 0.1], elbowX: [0.5, 1.85], spineLean: 0.02 },
   shield: { shoulderX: [0.3, 1.15], shoulderZ: [0.15, 0.1], elbowX: [0.5, 1.85], spineLean: 0.02 },
   build: { shoulderX: [0.4, 1.2], shoulderZ: [0.2, 0.04], elbowX: [0.7, 0.35], spineLean: 0.1 },
+  melee: { shoulderX: [0.3, 1.8], shoulderZ: [0.15, 0.35], elbowX: [0.4, 0.6], spineLean: 0.2 },
 };
 
 export interface LocomotionTarget {

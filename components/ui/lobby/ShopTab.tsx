@@ -14,6 +14,7 @@ const CATEGORY_LABEL: Record<ShopItem["category"] | "all", string> = {
   weaponWrap: "Weapon Wraps",
   backAccessory: "Accessories",
   emote: "Emotes",
+  pickaxe: "Pickaxes",
 };
 
 function useCountdown() {
@@ -123,7 +124,7 @@ export function ShopTab() {
       </div>
 
       <div className="mb-3 flex gap-1.5 rounded-xl bg-black/30 p-1 text-xs font-semibold">
-        {(["all", "skin", "weaponWrap", "backAccessory", "emote"] as const).map((c) => (
+        {(["all", "skin", "weaponWrap", "backAccessory", "emote", "pickaxe"] as const).map((c) => (
           <button
             key={c}
             onClick={() => setCategory(c)}

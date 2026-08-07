@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useGameStore } from "@/stores/gameStore";
 import { useMatchStore } from "@/stores/matchStore";
 import { useNetworkStore } from "@/stores/networkStore";
@@ -11,6 +11,7 @@ import { PauseMenu } from "@/components/ui/PauseMenu";
 import { MatchResults } from "@/components/ui/MatchResults";
 import { OnlineLobbyOverlay } from "@/components/ui/OnlineLobbyOverlay";
 import { ConnectionStatus } from "@/components/ui/ConnectionStatus";
+import { EmoteWheel } from "@/components/ui/EmoteWheel";
 
 export function HUD({ domElement }: { domElement: React.RefObject<HTMLDivElement | null> }) {
   const mode = useGameStore((s) => s.mode);
@@ -18,23 +19,39 @@ export function HUD({ domElement }: { domElement: React.RefObject<HTMLDivElement
   const setPaused = useGameStore((s) => s.setPaused);
   const matchPhase = useMatchStore((s) => s.phase);
   const matchStarted = useNetworkStore((s) => s.matchStarted);
+  const [emoteWheelOpen, setEmoteWheelOpen] = useState(false);
 
   const showLobby = mode === "online" && !matchStarted;
   const showResults = matchPhase === "match-end";
   const showCombatUi = !showLobby && !showResults;
+  // Spec: allow emotes in Training (always free play) and "after a round"
+  // (countdown/round-end/match-end) in real matches, but not mid-fight,
+  // where they'd be an exploitable distraction.
+  const canEmote = mode === "training" || matchPhase !== "combat";
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.code !== "Escape") return;
-      if (showLobby || showResults) return;
-      const next = !useGameStore.getState().paused;
-      setPaused(next);
-      if (next && document.pointerLockElement) document.exitPointerLock();
+      if (e.code === "Escape") {
+        if (showLobby || showResults) return;
+        if (emoteWheelOpen) {
+          setEmoteWheelOpen(false);
+          return;
+        }
+        const next = !useGameStore.getState().paused;
+        setPaused(next);
+        if (next && document.pointerLockElement) document.exitPointerLock();
+        return;
+      }
+      if (e.code === "KeyB") {
+        if (showLobby || showResults || paused || !canEmote) return;
+        setEmoteWheelOpen((v) => !v);
+        if (document.pointerLockElement) document.exitPointerLock();
+      }
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showLobby, showResults]);
+  }, [showLobby, showResults, paused, canEmote, emoteWheelOpen]);
 
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -61,6 +78,7 @@ export function HUD({ domElement }: { domElement: React.RefObject<HTMLDivElement
           <PauseMenu requestUnlock={() => domElement.current?.requestPointerLock()} />
         </div>
       )}
+      {emoteWheelOpen && !paused && !showLobby && !showResults && <EmoteWheel onClose={() => setEmoteWheelOpen(false)} />}
     </div>
   );
 }
