@@ -347,18 +347,17 @@ export function CharacterModel({
             <boxGeometry args={[0.045, 0.024, 0.01]} />
             {materials.eyeGlow}
           </mesh>
-          {/* Hair cap: a small sphere whose own north pole (position.y + radius)
-              must stay near the head's actual top (~0.15) — the previous two
-              attempts centered the cap too high/too large so its pole ballooned
-              out to ~0.29, far above the head, making the "cap" bigger than the
-              head itself and swallowing it down past eye level. Only a sliver
-              of skin tone ever showed, reading as "no texture, just black and
-              white" (black hair dome, white visor, no visible face). This one
-              tops out at 0.17 (a slight natural poof over the 0.152 head top)
-              and its bottom edge sits at 0.05, well above the visor at 0.01. */}
+          {/* Hair cap: a sphere whose own north pole (position.y + radius) sits
+              near the head's actual top (~0.15). The previous version (radius
+              0.13, bottom edge ~0.05) was too small/narrow — its low-height
+              rim was also a low-radius rim, so from any angle other than
+              dead-on it exposed a wide band of bare scalp at the temples,
+              reading as a receding hairline / bald. This one is bigger overall
+              (0.15 radius, matching the head) so the exposed rim is wider all
+              the way around, not just taller on top. */}
           {hasHair && (
-            <mesh position={[0, 0.04, -0.01]} castShadow={shadows}>
-              <sphereGeometry args={[0.13, 14, 10, 0, Math.PI * 2, 0, Math.PI * 0.48]} />
+            <mesh position={[0, 0.05, -0.015]} castShadow={shadows}>
+              <sphereGeometry args={[0.15, 14, 10, 0, Math.PI * 2, 0, Math.PI * 0.55]} />
               {materials.hair}
             </mesh>
           )}
