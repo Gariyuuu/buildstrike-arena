@@ -72,6 +72,7 @@ export function LocalPlayer({
   const pitch = useRef(0);
   const recoilOffset = useRef(0);
   const camShake = useRef(0);
+  const smoothedLook = useRef({ x: 0, y: 0 });
   const lastDamageFlashSeen = useRef(0);
   const velocityY = useRef(0);
   const grounded = useRef(false);
@@ -188,9 +189,19 @@ export function LocalPlayer({
     // ---- Look ----
     if (locked && !paused) {
       const d = consumeDelta();
+      // Raw pointer-lock deltas arrive in uneven per-frame bursts (mousemove
+      // events don't align with render frames), which reads as jerky/"messed
+      // up" mouse look even though the underlying sensitivity math is
+      // correct. A short frame-rate-independent low-pass filter (half-life
+      // in seconds, not a fixed per-frame blend factor, so it smooths the
+      // same amount regardless of fps) takes the edge off that jitter
+      // without adding noticeable aim lag.
+      const smoothing = 1 - Math.pow(2, -dt / 0.028);
+      smoothedLook.current.x += (d.x - smoothedLook.current.x) * smoothing;
+      smoothedLook.current.y += (d.y - smoothedLook.current.y) * smoothing;
       const sens = useSettingsStore.getState().mouseSensitivity * 0.0022;
-      yaw.current += d.x * sens;
-      pitch.current -= d.y * sens;
+      yaw.current += smoothedLook.current.x * sens;
+      pitch.current -= smoothedLook.current.y * sens;
       pitch.current = THREE.MathUtils.clamp(pitch.current, -1.25, 1.25);
     }
     recoilOffset.current = THREE.MathUtils.damp(recoilOffset.current, 0, 8, dt);

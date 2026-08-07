@@ -51,6 +51,7 @@ export function BRLocalPlayer({ domElement, spawn, chests }: { domElement: React
 
   const yaw = useRef(0);
   const pitch = useRef(0);
+  const smoothedLook = useRef({ x: 0, y: 0 });
   const velocityY = useRef(0);
   const grounded = useRef(false);
   const nextFireTime = useRef(0);
@@ -189,10 +190,19 @@ export function BRLocalPlayer({ domElement, spawn, chests }: { domElement: React
 
     // ---- Look ----
     if (locked) {
-      const sens = useSettingsStore.getState().mouseSensitivity * 0.0022;
       const delta = consumeDelta();
-      yaw.current -= delta.x * sens;
-      pitch.current = THREE.MathUtils.clamp(pitch.current - delta.y * sens, -Math.PI / 2 + 0.05, Math.PI / 2 - 0.05);
+      // Same frame-rate-independent smoothing as the 1v1 LocalPlayer (see
+      // its comment) — raw per-frame pointer-lock deltas are jittery on
+      // their own. Also fixed here: this previously subtracted delta.x from
+      // yaw while the 1v1 controller adds it, with an identical forward-
+      // vector formula below — same physical mouse movement turned the
+      // camera in opposite directions between modes.
+      const smoothing = 1 - Math.pow(2, -dt / 0.028);
+      smoothedLook.current.x += (delta.x - smoothedLook.current.x) * smoothing;
+      smoothedLook.current.y += (delta.y - smoothedLook.current.y) * smoothing;
+      const sens = useSettingsStore.getState().mouseSensitivity * 0.0022;
+      yaw.current += smoothedLook.current.x * sens;
+      pitch.current = THREE.MathUtils.clamp(pitch.current - smoothedLook.current.y * sens, -Math.PI / 2 + 0.05, Math.PI / 2 - 0.05);
     }
     const euler = new THREE.Euler(pitch.current, yaw.current, 0, "YXZ");
     const quat = new THREE.Quaternion().setFromEuler(euler);
