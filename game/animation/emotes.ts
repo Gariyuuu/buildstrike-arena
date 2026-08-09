@@ -52,7 +52,11 @@ export const EMOTE_POSES: Record<string, EmotePoseTarget> = {
     ...REST,
     shoulderXR: -2.1,
     shoulderZR: 0.5,
-    elbowXR: 1.7,
+    // Shallow bend on purpose: past a ~90 degree shoulder swing (this is
+    // ~120), a deep elbow bend reads as the forearm hyperextending backward
+    // instead of a raised waving arm — the same combo that looks fine at
+    // rifle/reload's much smaller shoulder angles breaks down out here.
+    elbowXR: 0.4,
     oscillations: [{ channel: "shoulderZR", amplitude: 0.35, frequency: 2.2 }],
   },
   "emote-victory": {
@@ -103,7 +107,10 @@ export const EMOTE_POSES: Record<string, EmotePoseTarget> = {
     shoulderXL: 0.9,
     shoulderXR: -0.9,
     elbowXL: 1.57,
-    elbowXR: 1.57,
+    // The square-wave oscillation below swings shoulderXR as far as -1.6 at
+    // its extreme — past the point where a deep elbow bend reads as
+    // hyperextended (see emote-wave) — so this side stays shallow.
+    elbowXR: 0.5,
     oscillations: [
       { channel: "shoulderXL", amplitude: 0.7, frequency: 1.4, wave: "square" },
       { channel: "shoulderXR", amplitude: 0.7, frequency: 1.4, wave: "square" },
@@ -139,7 +146,9 @@ export const EMOTE_POSES: Record<string, EmotePoseTarget> = {
   "emote-fistpump": {
     ...REST,
     shoulderXR: -1.8,
-    elbowXR: 1.6,
+    // A raised fist pump reads better mostly straight anyway — see the
+    // emote-wave comment for why a deep bend out here looks hyperextended.
+    elbowXR: 0.3,
     shoulderXL: 0.3,
     elbowXL: 0.3,
     oscillations: [
@@ -149,12 +158,17 @@ export const EMOTE_POSES: Record<string, EmotePoseTarget> = {
   },
   "emote-spinflex": {
     ...REST,
-    shoulderXL: -1.4,
-    shoulderXR: -1.4,
-    shoulderZL: 0.9,
-    shoulderZR: 0.9,
-    elbowXL: 1.9,
-    elbowXR: 1.9,
+    // A double-biceps flex: arms out to the sides (shoulderZ) and bent up,
+    // rather than swept back (shoulderX) — the previous version combined a
+    // ~80 degree shoulderX swing with a very deep elbow bend, which is
+    // exactly the combination that reads as the forearm hyperextending
+    // backward (see emote-wave).
+    shoulderXL: -0.25,
+    shoulderXR: -0.25,
+    shoulderZL: 1.1,
+    shoulderZR: 1.1,
+    elbowXL: 1.6,
+    elbowXR: 1.6,
     oscillations: [
       { channel: "spineLean", amplitude: 0.3, frequency: 0.6 },
       { channel: "headPitch", amplitude: 0.15, frequency: 0.6 },
