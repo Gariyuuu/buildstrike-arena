@@ -21,12 +21,15 @@ function IdleCharacter() {
     emoteRef.current = usePlayerStore.getState().activeEmote;
     if (!group.current) return;
     if (emoteRef.current) {
-      // Face the camera for the whole emote. Without this, the character
-      // keeps whatever heading the idle sway last landed on — anywhere in a
-      // +/-20 degree arc, including partly turned away from the camera —
-      // which reads as the emote "facing backwards" instead of playing
-      // toward the viewer like it does everywhere else in the game.
-      group.current.rotation.y = 0;
+      // Turn slightly toward the camera for the whole emote, not dead-on
+      // (rotation.y = 0). The camera sits directly on the Z axis, and
+      // shoulderX — the joint that swings an arm forward vs. backward —
+      // rotates in that same Y-Z plane. Viewed head-on, a forward swing and
+      // a backward swing project to almost the same silhouette (only subtle
+      // foreshortening/shading differs), so every emote's arm motion read as
+      // ambiguous or "backwards". A fixed three-quarter angle gives enough
+      // parallax to tell forward from backward at a glance.
+      group.current.rotation.y = -0.5;
     } else {
       group.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.4) * 0.35;
     }
