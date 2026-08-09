@@ -19,7 +19,17 @@ function IdleCharacter() {
 
   useFrame((state) => {
     emoteRef.current = usePlayerStore.getState().activeEmote;
-    if (group.current && !emoteRef.current) group.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.4) * 0.35;
+    if (!group.current) return;
+    if (emoteRef.current) {
+      // Face the camera for the whole emote. Without this, the character
+      // keeps whatever heading the idle sway last landed on — anywhere in a
+      // +/-20 degree arc, including partly turned away from the camera —
+      // which reads as the emote "facing backwards" instead of playing
+      // toward the viewer like it does everywhere else in the game.
+      group.current.rotation.y = 0;
+    } else {
+      group.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.4) * 0.35;
+    }
   });
 
   return (
