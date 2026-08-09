@@ -45,6 +45,7 @@ function IdleCharacter() {
         skin={skinDef.skin}
         backAccessory={backDef}
         shadows={false}
+        mirrorArmsForward
       />
     </group>
   );

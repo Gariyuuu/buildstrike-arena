@@ -62,6 +62,7 @@ export function CharacterModel({
   emoteRef,
   eliminated = false,
   victory = false,
+  mirrorArmsForward = false,
 }: {
   color: string;
   accent: string;
@@ -79,6 +80,14 @@ export function CharacterModel({
   emoteRef?: React.RefObject<string | null>;
   eliminated?: boolean;
   victory?: boolean;
+  /** Every pose (pose.ts, emotes.ts) was authored with positive shoulderX/
+   * elbowX swinging the arm away from the face — invisible from behind
+   * (every gameplay camera sits on that side) but backwards from the front.
+   * The Lobby preview is the one place a player looks at their own model
+   * head-on, so it opts into this to flip just the swing direction, without
+   * touching pose data every other (proven-correct-from-behind) caller
+   * still relies on. */
+  mirrorArmsForward?: boolean;
 }) {
   const leftLeg = useRef<THREE.Mesh>(null);
   const rightLeg = useRef<THREE.Mesh>(null);
@@ -210,16 +219,17 @@ export function CharacterModel({
     if (leftKnee.current) leftKnee.current.rotation.x = c.kneeL + kneeCycle;
     if (rightKnee.current) rightKnee.current.rotation.x = c.kneeR + Math.max(0, -Math.sin(phase.current + Math.PI / 2)) * 0.5 * c.legAmp;
 
+    const armSign = mirrorArmsForward ? -1 : 1;
     if (leftShoulder.current) {
-      leftShoulder.current.rotation.x = c.shoulderXL;
+      leftShoulder.current.rotation.x = armSign * c.shoulderXL;
       leftShoulder.current.rotation.z = c.shoulderZL;
     }
     if (rightShoulder.current) {
-      rightShoulder.current.rotation.x = c.shoulderXR;
+      rightShoulder.current.rotation.x = armSign * c.shoulderXR;
       rightShoulder.current.rotation.z = -c.shoulderZR;
     }
-    if (leftElbow.current) leftElbow.current.rotation.x = c.elbowXL;
-    if (rightElbow.current) rightElbow.current.rotation.x = c.elbowXR;
+    if (leftElbow.current) leftElbow.current.rotation.x = armSign * c.elbowXL;
+    if (rightElbow.current) rightElbow.current.rotation.x = armSign * c.elbowXR;
     if (spine.current) spine.current.rotation.x = c.spineLean;
     if (head.current) head.current.rotation.x = c.headPitch;
     if (hips.current) {
