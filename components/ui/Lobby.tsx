@@ -107,10 +107,14 @@ export function Lobby() {
         </div>
 
         <div className="flex flex-1 flex-col overflow-y-auto p-5">
-          <div className="mb-5 flex gap-1.5 rounded-xl bg-black/30 p-1 text-sm font-semibold">
+          <div role="tablist" aria-label="Lobby sections" className="mb-5 flex gap-1.5 rounded-xl bg-black/30 p-1 text-sm font-semibold">
             {TABS.map((t) => (
               <button
                 key={t.id}
+                role="tab"
+                aria-selected={tab === t.id}
+                aria-controls={`lobby-panel-${t.id}`}
+                id={`lobby-tab-${t.id}`}
                 onClick={() => {
                   soundManager.play("uiClick");
                   setTab(t.id);
@@ -122,7 +126,7 @@ export function Lobby() {
             ))}
           </div>
 
-          <div className="flex flex-1 items-start justify-center">
+          <div className="flex flex-1 items-start justify-center" role="tabpanel" id={`lobby-panel-${tab}`} aria-labelledby={`lobby-tab-${tab}`}>
             {tab === "play" && <PlayTab />}
             {tab === "locker" && <div className="w-full max-w-2xl"><LockerTab /></div>}
             {tab === "shop" && <div className="w-full max-w-3xl"><ShopTab /></div>}

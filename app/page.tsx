@@ -11,6 +11,7 @@ import { Lobby } from "@/components/ui/Lobby";
 import { InstructionsModal } from "@/components/ui/InstructionsModal";
 import { SettingsPanel } from "@/components/ui/SettingsPanel";
 import { LoadingScreen } from "@/components/ui/LoadingScreen";
+import { StatusAnnouncer } from "@/components/ui/StatusAnnouncer";
 
 const GameCanvas = dynamic(() => import("@/components/game/GameCanvas").then((m) => m.GameCanvas), {
   ssr: false,
@@ -38,6 +39,7 @@ export default function Home() {
 
   return (
     <div className="h-full w-full">
+      <StatusAnnouncer />
       {screen === "menu" && <Lobby />}
       {screen === "instructions" && <InstructionsModal />}
       {screen === "settings" && <SettingsPanel />}
