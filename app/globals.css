@@ -172,3 +172,30 @@ body {
   background: var(--bs-cyan);
   color: #04141a;
 }
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Hit-feedback and damage indication carry real gameplay information
+     (was I hit? from where? did I land a shot?) — the blanket kill above
+     would make them fire and disappear in under a millisecond, destroying
+     the signal. Restore their original durations so the flash/marker is
+     still perceivable, just without the decorative pulse/pop-in motion
+     everything else loses. */
+  .bs-damage-flash {
+    animation-duration: 0.55s !important;
+  }
+  .bs-hitmarker {
+    animation-duration: 0.32s !important;
+  }
+  .bs-directional-damage {
+    animation-duration: 0.8s !important;
+  }
+}
