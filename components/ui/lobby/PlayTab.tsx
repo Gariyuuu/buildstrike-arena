@@ -83,8 +83,11 @@ export function PlayTab() {
         {(["bot", "online", "br", "training"] as const).map((t) => (
           <button
             key={t}
-            className={`flex-1 rounded-lg py-2 transition ${tab === t ? "bg-bs-cyan text-[#04141a]" : "text-white/70 hover:text-white"}`}
-            onClick={() => setTab(t)}
+            className={`flex-1 rounded-lg py-2 transition active:scale-95 ${tab === t ? "bg-bs-cyan text-[#04141a]" : "text-white/70 hover:text-white"}`}
+            onClick={() => {
+              setTab(t);
+              soundManager.play("uiClick");
+            }}
           >
             {t === "bot" ? "1v1 Bot" : t === "online" ? "Private 1v1" : t === "br" ? "Battle Royale" : "Training"}
           </button>
@@ -99,8 +102,11 @@ export function PlayTab() {
               {DIFFICULTIES.map((d) => (
                 <button
                   key={d.id}
-                  onClick={() => setSettings({ botDifficulty: d.id })}
-                  className={`rounded-lg border px-2 py-2 text-sm font-semibold transition ${
+                  onClick={() => {
+                    setSettings({ botDifficulty: d.id });
+                    soundManager.play("uiClick");
+                  }}
+                  className={`rounded-lg border px-2 py-2 text-sm font-semibold transition active:scale-95 ${
                     botDifficulty === d.id
                       ? "border-bs-cyan bg-bs-cyan/15 text-bs-cyan"
                       : "border-white/10 bg-white/5 text-white/70 hover:border-white/25"
@@ -157,9 +163,12 @@ export function PlayTab() {
               {BR_MAPS.map((m) => (
                 <button
                   key={m.id}
-                  onClick={() => setBrMap(m.id)}
+                  onClick={() => {
+                    setBrMap(m.id);
+                    soundManager.play("uiClick");
+                  }}
                   title={m.desc}
-                  className={`rounded-lg border px-2 py-2 text-left text-sm font-semibold transition ${
+                  className={`rounded-lg border px-2 py-2 text-left text-sm font-semibold transition active:scale-95 ${
                     brMap === m.id ? "border-bs-cyan bg-bs-cyan/15 text-bs-cyan" : "border-white/10 bg-white/5 text-white/70 hover:border-white/25"
                   }`}
                 >
@@ -174,8 +183,11 @@ export function PlayTab() {
               {([1, 2, 3, 4] as SquadSize[]).map((size) => (
                 <button
                   key={size}
-                  onClick={() => setSquadSize(size)}
-                  className={`rounded-lg border px-2 py-2 text-sm font-semibold transition ${
+                  onClick={() => {
+                    setSquadSize(size);
+                    soundManager.play("uiClick");
+                  }}
+                  className={`rounded-lg border px-2 py-2 text-sm font-semibold transition active:scale-95 ${
                     squadSize === size ? "border-bs-cyan bg-bs-cyan/15 text-bs-cyan" : "border-white/10 bg-white/5 text-white/70 hover:border-white/25"
                   }`}
                 >

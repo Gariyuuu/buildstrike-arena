@@ -153,8 +153,11 @@ export function SettingsPanel({ onBack }: { onBack?: () => void }) {
               {(["low", "medium", "high"] as GraphicsQuality[]).map((q) => (
                 <button
                   key={q}
-                  onClick={() => s.set({ graphicsQuality: q })}
-                  className={`rounded-lg border px-2 py-2 text-sm font-semibold capitalize transition ${
+                  onClick={() => {
+                    s.set({ graphicsQuality: q });
+                    soundManager.play("uiClick");
+                  }}
+                  className={`rounded-lg border px-2 py-2 text-sm font-semibold capitalize transition active:scale-95 ${
                     s.graphicsQuality === q ? "border-bs-cyan bg-bs-cyan/15 text-bs-cyan" : "border-white/10 bg-white/5 text-white/70"
                   }`}
                 >
@@ -169,8 +172,11 @@ export function SettingsPanel({ onBack }: { onBack?: () => void }) {
               {(["easy", "normal", "hard", "expert"] as BotDifficulty[]).map((d) => (
                 <button
                   key={d}
-                  onClick={() => s.set({ botDifficulty: d })}
-                  className={`rounded-lg border px-2 py-2 text-sm font-semibold capitalize transition ${
+                  onClick={() => {
+                    s.set({ botDifficulty: d });
+                    soundManager.play("uiClick");
+                  }}
+                  className={`rounded-lg border px-2 py-2 text-sm font-semibold capitalize transition active:scale-95 ${
                     s.botDifficulty === d ? "border-bs-orange bg-bs-orange/15 text-bs-orange" : "border-white/10 bg-white/5 text-white/70"
                   }`}
                 >

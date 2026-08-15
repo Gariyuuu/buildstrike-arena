@@ -1,5 +1,6 @@
 "use client";
 
+import { ThinkingOrb } from "thinking-orbs";
 import { useNetworkStore } from "@/stores/networkStore";
 import { useMatchStore } from "@/stores/matchStore";
 
@@ -14,7 +15,11 @@ export function ConnectionStatus() {
   return (
     <>
       <div className="pointer-events-none absolute right-5 top-5 flex items-center gap-2 rounded-md bg-black/40 px-2.5 py-1 text-xs font-mono">
-        <span className="h-2 w-2 rounded-full" style={{ background: color }} />
+        {status === "connecting" ? (
+          <ThinkingOrb state="connecting" size={20} aria-label="Connecting" />
+        ) : (
+          <span className="h-2 w-2 rounded-full" style={{ background: color }} />
+        )}
         <span className="capitalize text-white/70">{status}</span>
         {status === "connected" && <span className="text-white/40">· {ping}ms</span>}
       </div>
