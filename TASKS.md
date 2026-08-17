@@ -6,13 +6,20 @@ messages/`SESSION_LOG.md`/`CHANGELOG.md` (real commits are happening now
 `PROJECT_STATE.md` → Git state). Update this file after every meaningful
 task (see `CLAUDE.md` → Permanent rules).
 
-**Staleness note (2026-08-07):** `T-001` through `T-010` below reflect
-work through the 2026-08-06 pre-"Lobby Update" state. Real feature work
-has shipped since (progression, cosmetics, Battle Royale mode, Training
-Arena, theme picker — see `CHANGELOG.md` v0.2.0 and `git log`) with no
-matching new task entries added here. Don't assume this is the complete
-backlog — check `CHANGELOG.md`/`git log` for what's actually shipped
-before picking a "next task."
+**Staleness note (2026-08-07, re-confirmed 2026-08-17):** `T-001`
+through `T-010` below reflect work through the 2026-08-06
+pre-"Lobby Update" state. Real feature work has shipped since
+(progression, cosmetics, Battle Royale mode, Training Arena, theme
+picker, an 8-weapon roster, redeem codes, keybind rebinding, quests/
+achievements, emotes, a `thinking-orbs` UI dependency, and a merged
+`fix/motion-a11y` accessibility branch — see `CHANGELOG.md` v0.2.0 and
+`git log`) with no matching new task entries added here. **[Verified
+2026-08-17]** As of this pass, the checked-out branch is a local,
+unpushed `chore/polish` (1 commit ahead of `main`, working tree clean —
+see `PROJECT_STATE.md` → Git state), and none of that later work has a
+`T-0xx` task entry either. Don't assume this is the complete backlog —
+check `CHANGELOG.md`/`git log` for what's actually shipped before
+picking a "next task."
 
 ---
 
@@ -25,7 +32,11 @@ buildRejected UI feedback were not exercised in a live browser (see
 their Outcome notes for why and what alternate verification was used).
 Nothing is currently in progress; pick the next item from `TASKS.md`'s
 remaining "Low priority"/"Technical debt" sections or from fresh
-testing/polish work.
+testing/polish work. **[Verified 2026-08-17]** Still true — working
+tree is clean (nothing mid-task), but note the checked-out branch is
+`chore/polish` (1 commit ahead of `main`, unpushed) rather than `main`;
+if you continue work, decide whether to keep building on `chore/polish`
+or merge/push it first. See `PROJECT_STATE.md` → Git state.
 
 ## Next up
 
@@ -135,10 +146,10 @@ aim removes the only workaround-requiring constraint.
   rather than silently connecting to `localhost:8787` in production.
 - **Outcome:** `getPartyHost()` now throws a new `PartyHostUnconfiguredError`
   when the env var is unset and `window.location.hostname !== "localhost"`.
-  `OnlineDuelScene.tsx`'s connect effect wraps `client.connect()` in a
+  `components/game/OnlineDuelScene.tsx`'s connect effect wraps `client.connect()` in a
   try/catch; on failure it sets `status: "disconnected"` and
   `errorMessage` to the thrown error's message, which
-  `OnlineLobbyOverlay.tsx` already rendered (pre-existing, previously
+  `components/ui/OnlineLobbyOverlay.tsx` already rendered (pre-existing, previously
   unused for this case). See `DECISIONS.md` D-017.
 - **Verified:** `tsc` ×2 clean; local dev (hostname === "localhost")
   still connects normally, confirmed via the live two-client tests run
@@ -157,14 +168,14 @@ None currently.
 
 ### T-003 — Reconcile Reset Arena behavior (BUG-004) ✅ DONE (2026-08-06)
 - **Status:** **Complete.** Decision: removed the redundant "Reset
-  Arena" button from `MatchResults.tsx` entirely rather than wiring it
+  Arena" button from `components/ui/MatchResults.tsx` entirely rather than wiring it
   to sync — the match is already over on that screen, "Rematch" already
   starts a correctly-synced fresh round/match, and "Reset Arena" there
   never did anything that mattered (it only cleared local builds/health,
-  both already meaningless post-match). `PauseMenu.tsx`'s "Reset Arena"
+  both already meaningless post-match). `components/ui/PauseMenu.tsx`'s "Reset Arena"
   (the one that matters, mid-match) is untouched.
 - **Verified:** `tsc`/`eslint`/build clean; confirmed via code read that
-  no other file referenced `MatchResults.tsx`'s removed `resetArena`
+  no other file referenced `components/ui/MatchResults.tsx`'s removed `resetArena`
   function/button.
 - **Relevant files:** `components/ui/MatchResults.tsx`
 
@@ -183,7 +194,7 @@ None currently.
 ## Medium priority
 
 ### T-005 — Fix duplicated bot-difficulty values (BUG-002) ✅ DONE (2026-08-06)
-- **Status:** **Complete.** `BotPlayer.tsx` now reads
+- **Status:** **Complete.** `components/game/BotPlayer.tsx` now reads
   `BOT_DIFFICULTY[difficulty].moveSpeedMultiplier` and `.aimAccuracy`
   directly; the two local `brainSpeedMultiplier`/`aimAccuracyFor`
   functions (which duplicated those exact values) are deleted.
@@ -225,7 +236,7 @@ None currently.
     `"attack"` state, gated by `Math.random() < cfg.aggression`, decides
     whether the bot closes distance or holds ground while still aiming/
     firing — low-aggression bots hold back more.
-  - `viewDistance`: `BotPlayer.tsx`'s `canSee` computation now also
+  - `viewDistance`: `components/game/BotPlayer.tsx`'s `canSee` computation now also
     requires `distance <= BOT_DIFFICULTY[difficulty].viewDistance`,
     capping how far a bot can perceive the player (previously unbounded
     given clear line of sight).
@@ -243,9 +254,9 @@ None currently.
 
 ### T-007 — Explicit UI feedback for server-rejected build placement ✅ DONE (2026-08-06)
 - **Status:** **Complete.** Added a new `case "buildRejected":` handler
-  in `OnlineDuelScene.tsx` that calls a new `usePlayerStore` action
+  in `components/game/OnlineDuelScene.tsx` that calls a new `usePlayerStore` action
   `triggerBuildDenied()` and plays a new synthesized `buildDenied` sound.
-  `CombatHud.tsx` has a new `BuildDeniedToast` component (subscribed to
+  `components/ui/CombatHud.tsx` has a new `BuildDeniedToast` component (subscribed to
   the `buildDenied` timestamp trigger) that briefly shows a "Placement
   denied" toast — follows the exact same proven `key={trigger}`
   self-clearing-animation pattern already used for `hitMarker`/
@@ -274,11 +285,11 @@ None currently.
 - **Status:** **Complete.** Removed `HelloMsg` from `ClientMessage`
   entirely (confirmed unreferenced anywhere via grep before removing).
   Removed `StateMsg.seq` and the corresponding `seq` counter in
-  `onlineAdapter.ts`'s `sendState` (decision: remove rather than wire up
+  `game/networking/onlineAdapter.ts`'s `sendState` (decision: remove rather than wire up
   — the server already has an equivalent staleness/sanity check via
   `msg.timestamp`-derived speed validation in `handleState`, making a
   second sequence-number mechanism redundant). Removed the dead
-  `stateSeq` ref from `LocalPlayer.tsx`.
+  `stateSeq` ref from `components/game/LocalPlayer.tsx`.
 - **Verified:** `tsc` ×2 clean (both the app and `party/tsconfig.json`
   configs — confirms no dangling reference on either side of the wire
   protocol).
@@ -301,10 +312,10 @@ None currently.
   "friction" has no meaningful hook without a much larger change to the
   movement model, which is out of scope for a cleanup task). See
   `DECISIONS.md` D-019.
-  - `turnSmoothing`: `BotPlayer.tsx` and `RemotePlayer.tsx` both had a
+  - `turnSmoothing`: `components/game/BotPlayer.tsx` and `components/game/RemotePlayer.tsx` both had a
     hardcoded `10` in their `THREE.MathUtils.damp(...)` body-rotation
     calls — replaced with `MOVEMENT.turnSmoothing` (14) in both.
-  - `destructionEffectDuration`: `EffectsLayer.tsx` had its own local
+  - `destructionEffectDuration`: `components/game/EffectsLayer.tsx` had its own local
     `DESTRUCTION_LIFE = 0.6` constant duplicating this value — replaced
     both use sites with `BUILD_CONFIG.destructionEffectDuration`,
     imported from `game/config/builds.ts`.
@@ -324,7 +335,7 @@ Cross-referenced from `CLAUDE.md` → Known issues. Full details above
 | ID | Summary | Severity | Status | Task/Decision |
 |---|---|---|---|---|
 | BUG-001 | `NEXT_PUBLIC_PARTY_HOST` unset → silent localhost fallback in prod | Medium | **Fixed** 2026-08-06 | T-002, `DECISIONS.md` D-017 |
-| BUG-002 | Bot difficulty values duplicated between config and `BotPlayer.tsx` | Low-Medium (currently in sync) | **Fixed** 2026-08-06 | T-005 |
+| BUG-002 | Bot difficulty values duplicated between config and `components/game/BotPlayer.tsx` | Low-Medium (currently in sync) | **Fixed** 2026-08-06 | T-005 |
 | BUG-003 | Server `resetRound(false)` doesn't phase-guard | Low | **Fixed** 2026-08-06 | T-004 |
 | BUG-003b | `BOT_DIFFICULTY.reactionTime`/`aggression`/`viewDistance` unused | Low | **Fixed** 2026-08-06 | T-006, `DECISIONS.md` D-018 |
 | BUG-004 | Reset Arena inconsistent between PauseMenu and MatchResults | Low | **Fixed** 2026-08-06 | T-003 |

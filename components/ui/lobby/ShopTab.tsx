@@ -128,8 +128,11 @@ export function ShopTab() {
         {(["all", "skin", "weaponWrap", "backAccessory", "emote", "pickaxe"] as const).map((c) => (
           <button
             key={c}
-            onClick={() => setCategory(c)}
-            className={`flex-1 rounded-lg py-1.5 transition ${category === c ? "bg-bs-cyan text-[#04141a]" : "text-white/70 hover:text-white"}`}
+            onClick={() => {
+              setCategory(c);
+              soundManager.play("uiClick");
+            }}
+            className={`flex-1 rounded-lg py-1.5 transition active:scale-95 ${category === c ? "bg-bs-cyan text-[#04141a]" : "text-white/70 hover:text-white"}`}
           >
             {CATEGORY_LABEL[c]}
           </button>

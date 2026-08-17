@@ -1,5 +1,6 @@
 "use client";
 
+import type { CSSProperties } from "react";
 import { useBRStore } from "@/stores/brStore";
 import { useGameStore } from "@/stores/gameStore";
 import { useProfileStore } from "@/stores/profileStore";
@@ -25,7 +26,13 @@ export function BRResults() {
     <div className="pointer-events-auto absolute inset-0 z-30 flex items-center justify-center bg-black/70 backdrop-blur-sm">
       <div className="glass-panel bs-pop-in w-full max-w-md p-8 text-center">
         <p className="text-xs font-bold uppercase tracking-[0.3em] text-white/40">Battle Royale</p>
-        <h2 className={`mt-2 text-4xl font-black ${won ? "text-bs-cyan" : "text-white"}`}>{won ? "Victory Royale!" : "Eliminated"}</h2>
+        <h2
+          className={`fx-glitch mt-2 text-4xl font-black ${won ? "text-bs-cyan" : "text-white"}`}
+          data-text={won ? "Victory Royale!" : "Eliminated"}
+          style={won ? ({ "--ink-2": "#ff8a33", "--ink-3": "#ff4d4d" } as CSSProperties) : ({ "--ink-2": "#ff4d4d", "--ink-3": "#33e6ff" } as CSSProperties)}
+        >
+          {won ? "Victory Royale!" : "Eliminated"}
+        </h2>
         {!won && placement && <p className="mt-2 text-lg font-semibold text-white/60">#{placement} — {placement} squads remained</p>}
         <p className="mt-4 font-mono text-sm text-bs-orange">+{won ? 500 : 100} Coins</p>
         <button className="btn-primary mt-6 w-full" onClick={backToLobby}>

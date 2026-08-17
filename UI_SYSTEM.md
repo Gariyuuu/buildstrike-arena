@@ -26,9 +26,9 @@ No `<Link>`/router navigation exists. All screen transitions are
 
 | Screen | Component | Notes |
 |---|---|---|
-| `menu` | `components/ui/MainMenu.tsx` | Logo, Bot Duel / Online 1v1 tabs, difficulty picker, room create/join, Instructions/Settings buttons |
+| `menu` | `components/ui/Lobby.tsx` (renamed/refactored from a prior `components/ui/Lobby.tsx`, per session-log history) | Logo, Bot Duel / Online 1v1 tabs, difficulty picker, room create/join, Instructions/Settings buttons |
 | `instructions` | `components/ui/InstructionsModal.tsx` | Full control scheme table + item explanations; "Got it" returns to `"playing"` if a mode was already chosen, else `"menu"` |
-| `settings` | `components/ui/SettingsPanel.tsx` | Also embeddable (via `onBack` prop) inside `PauseMenu.tsx` without leaving an active match |
+| `settings` | `components/ui/SettingsPanel.tsx` | Also embeddable (via `onBack` prop) inside `components/ui/PauseMenu.tsx` without leaving an active match |
 | `playing` | `components/game/GameCanvas.tsx` + `components/ui/HUD.tsx` | The actual game |
 
 ## Reusable components / component hierarchy
@@ -104,7 +104,7 @@ uses `border-radius: 1rem` and a hand-tuned `box-shadow` for the
 ## Breakpoints
 
 Tailwind's default breakpoints only (`sm:`/`md:`/etc. used ad hoc in
-`MainMenu.tsx`/`SettingsPanel.tsx`/`InstructionsModal.tsx` grid layouts).
+`components/ui/Lobby.tsx`/`components/ui/SettingsPanel.tsx`/`components/ui/InstructionsModal.tsx` grid layouts).
 No custom breakpoint configuration exists.
 
 ## Animations
@@ -114,7 +114,7 @@ CSS keyframes in `app/globals.css`:
 - `bs-hitmarker` (`.bs-hitmarker`) — scale/fade pop for the hit-confirm X
 - `bs-pulse` (`.bs-pulse`) — slow opacity pulse (loading logo, connection status pips)
 - `bs-pop-in` (`.bs-pop-in`) — translate+scale entrance for menu panels
-- `bs-loading` (inline `<style>` in `LoadingScreen.tsx` only) — the loading-bar sweep
+- `bs-loading` (inline `<style>` in `components/ui/LoadingScreen.tsx` only) — the loading-bar sweep
 
 3D-space animation (character leg swing, weapon reload tilt, muzzle
 flash) is done imperatively per-frame inside `useFrame` callbacks, not
@@ -128,7 +128,7 @@ hit marker) are hand-drawn inline SVG or CSS shapes.
 
 ## Image asset conventions
 
-Two `<img>` tags exist (`MainMenu.tsx`, `LoadingScreen.tsx`), both
+Two `<img>` tags exist (`components/ui/Lobby.tsx`, `components/ui/LoadingScreen.tsx`), both
 pointing at `/logo.svg`, both flagged by ESLint's
 `@next/next/no-img-element` as **warnings** (not errors — verified via
 `npx eslint .`, exit code 0). Not using `next/image` here is a
@@ -146,41 +146,41 @@ exclusive `gameStore`/`matchStore`/`networkStore` conditions gate them).
 ## Notifications
 
 No toast/notification system. Feedback is either inline (error text in
-`OnlineLobbyOverlay.tsx`) or a themed banner
-(`ConnectionStatus.tsx`'s disconnect banners, `CombatHud.tsx`'s
+`components/ui/OnlineLobbyOverlay.tsx`) or a themed banner
+(`components/ui/ConnectionStatus.tsx`'s disconnect banners, `components/ui/CombatHud.tsx`'s
 elimination banner).
 
 ## Forms
 
 Two real form inputs in the whole app: the player-name text input and
-room-code text input in `MainMenu.tsx` (plain controlled `<input>`, no
+room-code text input in `components/ui/Lobby.tsx` (plain controlled `<input>`, no
 form library, no `<form>` element, submission via button `onClick`, not
 `onSubmit`). Settings use `<input type="range">`/`<input type="checkbox">`,
 also uncontrolled-via-library, directly wired to `settingsStore.set()`.
 
 ## Loading states
 
-- App-level: `LoadingScreen.tsx`, used as the `next/dynamic` loading
+- App-level: `components/ui/LoadingScreen.tsx`, used as the `next/dynamic` loading
   fallback while `GameCanvas` (and its heavy R3F/Rapier dependencies)
   streams in.
 - In-HUD: "Reloading…" text replaces the ammo counter during weapon
-  reload (`CombatHud.tsx`); "Connecting…"/"Waiting for opponent…" text
-  states on the Ready button (`OnlineLobbyOverlay.tsx`); a circular
-  progress ring during healing (`CombatHud.tsx`'s `HealProgress`).
+  reload (`components/ui/CombatHud.tsx`); "Connecting…"/"Waiting for opponent…" text
+  states on the Ready button (`components/ui/OnlineLobbyOverlay.tsx`); a circular
+  progress ring during healing (`components/ui/CombatHud.tsx`'s `HealProgress`).
 
 ## Empty states
 
 Minimal — this app has very little "no data yet" surface. The closest
-examples: `OnlineLobbyOverlay.tsx`'s "Waiting for opponent to join…"
-button label when `opponentPresent` is false, and `CombatHud.tsx`'s
+examples: `components/ui/OnlineLobbyOverlay.tsx`'s "Waiting for opponent to join…"
+button label when `opponentPresent` is false, and `components/ui/CombatHud.tsx`'s
 build-health bar which simply doesn't render when a build is at full
 health (`damagedFraction < 1` check).
 
 ## Error states
 
 See `ARCHITECTURE.md` → Error handling. UI-visible error surfaces:
-`OnlineLobbyOverlay.tsx` (`networkStore.errorMessage`),
-`ConnectionStatus.tsx` ("Connection Lost" full-screen message when
+`components/ui/OnlineLobbyOverlay.tsx` (`networkStore.errorMessage`),
+`components/ui/ConnectionStatus.tsx` ("Connection Lost" full-screen message when
 `status === "disconnected"`). No generic error boundary exists anywhere
 in the component tree.
 
@@ -190,7 +190,7 @@ Not a focus area of this build — no explicit ARIA attributes, no
 keyboard-navigation audit, no screen-reader considerations found. The
 game itself is inherently mouse-aim-dependent (pointer lock + FPS-style
 camera control), which is a hard accessibility ceiling for this genre
-regardless of UI polish. `MainMenu.tsx` does explicitly tell the user
+regardless of UI polish. `components/ui/Lobby.tsx` does explicitly tell the user
 "Keyboard and mouse recommended" as a responsive-design disclosure, not
 an accessibility feature per se.
 
@@ -203,7 +203,7 @@ fallback/detection for that case.
 
 ## Known visual inconsistencies
 
-- The two "Reset Arena" buttons (`PauseMenu.tsx`, `MatchResults.tsx`)
+- The two "Reset Arena" buttons (`components/ui/PauseMenu.tsx`, `components/ui/MatchResults.tsx`)
   look and are labeled identically but behave differently in online mode
   — see `TASKS.md` `BUG-004`. This is a *behavioral* inconsistency more
   than visual, but worth flagging here since a UI review would spot the

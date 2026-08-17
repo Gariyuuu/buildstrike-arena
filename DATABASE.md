@@ -33,7 +33,7 @@ Only settings persist across sessions.
   `stores/settingsStore.ts` for exact types/defaults.
 - **Sensitive data:** None.
 - **Retention:** Forever, until the user clears site data or clicks
-  "Reset to Defaults" in `SettingsPanel.tsx`.
+  "Reset to Defaults" in `components/ui/SettingsPanel.tsx`.
 
 ### 2. Client-side session state — `sessionStorage`
 

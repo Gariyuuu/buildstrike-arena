@@ -1,12 +1,21 @@
 # FEATURES.md
 
-**Staleness note (2026-08-07):** this file predates the "Lobby Update"
+**Staleness note (2026-08-07, re-confirmed still stale 2026-08-17):**
+this file predates the "Lobby Update"
 (progression/cosmetics/daily-rewards/Training-Arena, `CHANGELOG.md`
 v0.2.0) and a full **Battle Royale mode** (`game/br/`,
 `components/game/BattleRoyaleScene.tsx`, three maps) — neither is
-documented below. See `CHANGELOG.md` and `git log` for what's actually
-shipped; not rewritten here to keep the 2026-08-07 doc-checkpoint pass
-scoped (see `PROJECT_STATE.md`).
+documented below. **[Verified 2026-08-17]** The gap has widened further
+since the 2026-08-07 note was written: `git log` shows 10 more commits
+on top of the state that note described, including an 8-weapon roster
+expansion, redeem codes, keybind rebinding, a theme picker, quests/
+achievements, an emote system, a `thinking-orbs` UI dependency, and
+reduced-motion/ARIA accessibility work (`fix/motion-a11y`, merged to
+`main`). None of that is reflected below either. See `CHANGELOG.md` and
+`git log` for what's actually shipped; not rewritten here — this was a
+documentation-accuracy pass on the core five files
+(`CLAUDE.md`/`PROJECT_STATE.md`/`TASKS.md`/`HANDOFF.md`/
+`SESSION_LOG.md`), not a full FEATURES.md rewrite.
 
 Every major feature, classified by actual verified wiring through the
 full flow — not by "files exist." Status legend:
@@ -23,7 +32,7 @@ full flow — not by "files exist." Status legend:
   difficulty, view instructions, open settings.
 - **Status: Verified complete** (visually confirmed via Playwright
   screenshot this session — see `PROJECT_STATE.md`).
-- **Frontend:** `components/ui/MainMenu.tsx`, `app/page.tsx` (screen
+- **Frontend:** `components/ui/Lobby.tsx` (renamed/refactored from a prior `components/ui/Lobby.tsx`, per session-log history), `app/page.tsx` (screen
   switcher), `stores/gameStore.ts`.
 - **Backend:** None needed.
 - **DB dependencies:** None.
@@ -57,7 +66,7 @@ full flow — not by "files exist." Status legend:
 - **Error states:** None explicit.
 - **Loading states:** N/A.
 - **Edge cases:** Camera occlusion raycast (`castWorldRay` in
-  `LocalPlayer.tsx`) pulls the camera closer when backed against a wall —
+  `components/game/LocalPlayer.tsx`) pulls the camera closer when backed against a wall —
   confirmed present in code, not exhaustively visually verified at every
   angle.
 - **Tests:** None automated.
@@ -121,9 +130,9 @@ full flow — not by "files exist." Status legend:
   itself was **not** specifically exercised in a live two-client session
   — risk is judged low given the shared, now-proven pattern, but this is
   not the same as having watched it happen.
-- **Frontend:** `components/game/BuildGhost.tsx` (preview), `BuildInstance.tsx`
-  (placed builds, physics collider, health bar sprite), `LocalPlayer.tsx`
-  (placement input/raycast), `BotPlayer.tsx` (`tryBotBuild`), `game/building/grid.ts`
+- **Frontend:** `components/game/BuildGhost.tsx` (preview), `components/game/BuildInstance.tsx`
+  (placed builds, physics collider, health bar sprite), `components/game/LocalPlayer.tsx`
+  (placement input/raycast), `components/game/BotPlayer.tsx` (`tryBotBuild`), `game/building/grid.ts`
   (pure validation logic — shared with server), `stores/buildsStore.ts`.
 - **Backend:** `party/server.ts`'s `handleBuildPlace()` — re-runs the
   same `validatePlacement()` server-side as the authority; assigns the
@@ -153,8 +162,8 @@ full flow — not by "files exist." Status legend:
   heal/5.5s/1 charge); UI progress ring code confirmed present
   (`components/ui/CombatHud.tsx`'s `HealProgress`); not visually
   screenshot-confirmed mid-heal this session. Online path untested live.
-- **Frontend:** `LocalPlayer.tsx` (`handleHealing`/`completeHeal`/
-  `cancelHeal`), `BotPlayer.tsx` (bot healing logic in its `useFrame`),
+- **Frontend:** `components/game/LocalPlayer.tsx` (`handleHealing`/`completeHeal`/
+  `cancelHeal`), `components/game/BotPlayer.tsx` (bot healing logic in its `useFrame`),
   `game/config/healing.ts`, `components/ui/CombatHud.tsx`.
 - **Backend:** `party/server.ts`'s `handleHeal()` — applies the actual
   restore server-side on `"complete"` event, clamps to
@@ -176,7 +185,7 @@ full flow — not by "files exist." Status legend:
 - **Status: Verified complete** (upgraded 2026-08-06 — `TASKS.md`
   `T-005`/`T-006`). All seven required behaviors are implemented. The
   `aimAccuracy`/`moveSpeedMultiplier` duplication (`BUG-002`) is fixed —
-  `BotPlayer.tsx` now reads `BOT_DIFFICULTY[difficulty]` directly, no
+  `components/game/BotPlayer.tsx` now reads `BOT_DIFFICULTY[difficulty]` directly, no
   local hardcoded copies. All three previously-unused fields now affect
   real behavior: `reactionTime` gates a delay before the bot starts
   actively engaging after first spotting the player, `aggression` gates
@@ -234,8 +243,8 @@ full flow — not by "files exist." Status legend:
   (`BUG-001` fixed 2026-08-06, `T-002`/`DECISIONS.md` D-017).
 - **Validation (server-side):** Room capacity (2 max), fire-rate,
   movement speed, build placement — see `SECURITY.md`.
-- **Error states:** `roomStatus`/`error` messages exist; `OnlineLobbyOverlay.tsx`
-  surfaces `networkStore.errorMessage`. `ConnectionStatus.tsx` shows a
+- **Error states:** `roomStatus`/`error` messages exist; `components/ui/OnlineLobbyOverlay.tsx`
+  surfaces `networkStore.errorMessage`. `components/ui/ConnectionStatus.tsx` shows a
   "Connection Lost" overlay when `status === "disconnected"`.
 - **Loading states:** "Connecting…" text on the Ready button while
   `status !== "connected"`.
@@ -292,7 +301,7 @@ full flow — not by "files exist." Status legend:
 - **Frontend:** `stores/matchStore.ts`, `components/game/BotDuelScene.tsx`
   (bot-mode timers), `components/game/OnlineDuelScene.tsx` (online-mode
   message→store translation), `components/ui/Scoreboard.tsx`,
-  `MatchResults.tsx`.
+  `components/ui/MatchResults.tsx`.
 - **Backend:** `party/server.ts`'s `maybeStartMatch()`/`endRound()`/
   `resetRound()` for the online path.
 - **Known issues:** `BUG-010` (reconnecting during round-end/match-end
@@ -312,7 +321,7 @@ full flow — not by "files exist." Status legend:
   counter, mute, fullscreen — persisted to localStorage.
 - **Status: Verified complete.** `stores/settingsStore.ts` uses
   `zustand/middleware persist`; `components/ui/SettingsPanel.tsx` wires
-  every documented setting to a control; `GameCanvas.tsx` reads
+  every documented setting to a control; `components/game/GameCanvas.tsx` reads
   `graphicsQuality`/`shadowsEnabled`/`fov` to configure the R3F `<Canvas>`
   (DPR cap, antialiasing, shadow maps).
 - **Frontend only** — no backend/DB involvement by design (client-local
@@ -335,7 +344,7 @@ full flow — not by "files exist." Status legend:
   browser testing doesn't audibly confirm playback).
 - **Frontend:** `game/audio/soundManager.ts` (singleton class,
   `SoundManager`), wired into effectively every gameplay action across
-  `LocalPlayer.tsx`, `BotPlayer.tsx`, scene files, and UI click handlers.
+  `components/game/LocalPlayer.tsx`, `components/game/BotPlayer.tsx`, scene files, and UI click handlers.
 - **Backend:** N/A.
 - **Known issues:** `soundManager.resume()` (unlocks the AudioContext on
   a user gesture, browser autoplay-policy requirement) is called from
@@ -366,7 +375,7 @@ full flow — not by "files exist." Status legend:
   (embedded), Return to Menu.
 - **Status: Verified complete** (upgraded 2026-08-06 — `TASKS.md`
   `T-003`/`T-004`). Resume/Settings/Return-to-Menu remain Verified
-  complete. The `MatchResults.tsx` "Reset Arena" button (the one that
+  complete. The `components/ui/MatchResults.tsx` "Reset Arena" button (the one that
   didn't sync — `BUG-004`) has been **removed entirely**, not fixed to
   sync — it never did anything meaningful on the post-match screen
   (decision recorded in `TASKS.md` T-003). The
@@ -375,8 +384,8 @@ full flow — not by "files exist." Status legend:
   WebSocket protocol test: allowed during combat, correctly rejected
   during round-end.
 - **Frontend:** `components/ui/PauseMenu.tsx` (the only remaining Reset
-  Arena button — mid-match, in the pause menu), `MatchResults.tsx`,
-  `HUD.tsx` (Escape key listener + pointer-lock exit).
+  Arena button — mid-match, in the pause menu), `components/ui/MatchResults.tsx`,
+  `components/ui/HUD.tsx` (Escape key listener + pointer-lock exit).
 - **Backend:** `party/server.ts`'s `resetRound(false)` (online mode
   only), now phase-guarded.
 - **Known issues:** None currently open for this feature.

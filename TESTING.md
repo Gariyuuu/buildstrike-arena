@@ -41,7 +41,7 @@ no React/DOM/network dependency, easy to test in isolation):
   involves `THREE.Raycaster` against a registry, more of an integration
   test.
 - `game/config/*.ts` — no logic to test, but a "config values are
-  internally consistent" smoke test (e.g., asserting `BotPlayer.tsx`'s
+  internally consistent" smoke test (e.g., asserting `components/game/BotPlayer.tsx`'s
   hardcoded difficulty values match `BOT_DIFFICULTY`, closing the loop on
   `TASKS.md` `BUG-002` regressions) would be cheap and high-value.
 

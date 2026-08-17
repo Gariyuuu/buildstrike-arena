@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { useGameStore } from "@/stores/gameStore";
 import { useMatchStore } from "@/stores/matchStore";
 import { usePlayerStore } from "@/stores/playerStore";
@@ -77,7 +77,13 @@ export function MatchResults() {
     <div className="absolute inset-0 z-30 flex items-center justify-center bg-black/70 backdrop-blur-sm">
       <div className="glass-panel bs-pop-in w-full max-w-md p-8 text-center">
         <p className="text-xs font-bold uppercase tracking-[0.3em] text-white/40">Match Complete</p>
-        <h2 className={`mt-2 text-5xl font-black ${won ? "text-bs-cyan" : "text-bs-orange"}`}>{won ? "Victory" : "Defeat"}</h2>
+        <h2
+          className={`fx-glitch mt-2 text-5xl font-black ${won ? "text-bs-cyan" : "text-bs-orange"}`}
+          data-text={won ? "Victory" : "Defeat"}
+          style={won ? ({ "--ink-2": "#ff8a33", "--ink-3": "#ff4d4d" } as CSSProperties) : ({ "--ink-2": "#33e6ff", "--ink-3": "#ffffff" } as CSSProperties)}
+        >
+          {won ? "Victory" : "Defeat"}
+        </h2>
         <p className="mt-3 font-mono text-2xl text-white/80">
           {score.local} — {score.opponent}
         </p>

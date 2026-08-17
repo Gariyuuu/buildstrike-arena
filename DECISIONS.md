@@ -119,7 +119,7 @@ sources supports.
   that's still referenced by the memoized value.
 - **Decision:** Do not explicitly remove the character controller on
   unmount at all.
-- **Reasoning:** **Verified** — `useCharacterMover.ts`'s comment:
+- **Reasoning:** **Verified** — `game/physics/useCharacterMover.ts`'s comment:
   *"Not explicitly removed on unmount: the whole Rapier World (and every
   controller/collider/body it owns) is torn down when `<Physics>`
   unmounts... removing it eagerly here is unsafe under React StrictMode's
@@ -153,9 +153,9 @@ sources supports.
   properties directly — that's the correct, idiomatic r3f pattern, not a
   purity violation."* Several genuine violations of the same *shape* were
   also found and fixed in `components/ui/*` during the same session
-  (`CombatHud.tsx`'s `DamageFlash`/`HitMarker` refactored to derive the
+  (`components/ui/CombatHud.tsx`'s `DamageFlash`/`HitMarker` refactored to derive the
   animation `key` directly from the trigger timestamp instead of
-  `useState`+`useEffect`; `OnlineDuelScene.tsx`'s `handleMessage`/
+  `useState`+`useEffect`; `components/game/OnlineDuelScene.tsx`'s `handleMessage`/
   `translate` hoisted above the `useEffect` that references them) —
   confirming the rules were correctly *kept* enabled outside the game
   tree, not blanket-disabled out of convenience.
@@ -194,7 +194,7 @@ sources supports.
 - **Consequences:** See `SECURITY.md` — a modified client could falsely
   claim hits it didn't land, bounded only by fire-rate limiting.
 - **Affected files:** `party/server.ts` (`handleFire`/`applyDamage`),
-  `game/physics/damageable.tsx`, `LocalPlayer.tsx`/`BotPlayer.tsx` hit
+  `game/physics/damageable.tsx`, `components/game/LocalPlayer.tsx`/`components/game/BotPlayer.tsx` hit
   resolution.
 - **Verification:** Verified.
 
@@ -202,12 +202,12 @@ sources supports.
 
 - **Date:** Same build session
 - **Status:** Accepted, in effect
-- **Context:** `LocalPlayer.tsx` needs to behave almost identically
+- **Context:** `components/game/LocalPlayer.tsx` needs to behave almost identically
   whether the opponent is a local bot or a networked human — the input,
   movement, camera, and most combat/building logic is mode-agnostic.
 - **Decision:** Define a `GameAdapter` interface
   (`game/networking/adapter.ts`) with two implementations
-  (`localAdapter.ts` — synchronous local commits, `onlineAdapter.ts` —
+  (`game/networking/localAdapter.ts` — synchronous local commits, `game/networking/onlineAdapter.ts` —
   sends WebSocket messages), injected into `LocalPlayer` as a prop.
 - **Reasoning:** **Inferred** from the clean structural separation and
   consistent usage pattern across the codebase — no explicit comment
@@ -215,14 +215,14 @@ sources supports.
   shape (one component, two behavior-swappable dependencies).
 - **Alternatives considered:** Not documented in-repo; a plausible
   rejected alternative would have been branching on `mode` throughout
-  `LocalPlayer.tsx`'s combat/build logic directly, which the adapter
+  `components/game/LocalPlayer.tsx`'s combat/build logic directly, which the adapter
   pattern avoids (see `CLAUDE.md`'s coding-conventions note on this).
 - **Consequences:** Adding a new player action requires adding a method
   to `GameAdapter` and implementing it in both adapters, even if one
   implementation is a no-op — see `CLAUDE.md`'s "DO NOT CHANGE WITHOUT
   REVIEW."
-- **Affected files:** `game/networking/adapter.ts`, `localAdapter.ts`,
-  `onlineAdapter.ts`, `components/game/LocalPlayer.tsx`.
+- **Affected files:** `game/networking/adapter.ts`, `game/networking/localAdapter.ts`,
+  `game/networking/onlineAdapter.ts`, `components/game/LocalPlayer.tsx`.
 - **Verification:** Inferred.
 
 ## D-008 — `positionTracker` as a plain mutable singleton, not a Zustand store
@@ -246,7 +246,7 @@ sources supports.
   do `useStore` on it or expect React to re-render from it changing. See
   `CLAUDE.md`'s coding-conventions note.
 - **Affected files:** `game/state/positionTracker.ts`, read/written by
-  `LocalPlayer.tsx`, `BotPlayer.tsx`, `RemotePlayer.tsx`.
+  `components/game/LocalPlayer.tsx`, `components/game/BotPlayer.tsx`, `components/game/RemotePlayer.tsx`.
 - **Verification:** Verified.
 
 ## D-009 — 100% procedural audio and visuals, zero external asset files
@@ -275,8 +275,8 @@ sources supports.
   Visual fidelity is bounded by primitive geometry — no textures, no
   detailed character models.
 - **Affected files:** `game/audio/soundManager.ts`,
-  `components/game/CharacterModel.tsx`, `Arena.tsx`, `WeaponView.tsx`,
-  `BuildInstance.tsx`/`BuildGhost.tsx`.
+  `components/game/CharacterModel.tsx`, `components/game/Arena.tsx`, `components/game/WeaponView.tsx`,
+  `components/game/BuildInstance.tsx`/`components/game/BuildGhost.tsx`.
 - **Verification:** Verified (asset-absence claim) / Inferred
   (performance-motivation claim).
 
@@ -301,7 +301,7 @@ sources supports.
   `TASKS.md` `BUG-002`) — this was **not** a deliberate exception, it is
   tracked as a bug to fix, not a documented alternative pattern.
 - **Consequences:** Tuning gameplay is normally a one-file edit; the
-  `BotPlayer.tsx` exception is a trap for anyone who doesn't know about
+  `components/game/BotPlayer.tsx` exception is a trap for anyone who doesn't know about
   it (now documented in `CLAUDE.md`, `FILE_MAP.md`, `TASKS.md`).
 - **Affected files:** All of `game/config/*.ts`; violation in
   `components/game/BotPlayer.tsx`.
@@ -388,13 +388,13 @@ sources supports.
      selectable items (`ITEM_ORDER` in `components/game/LocalPlayer.tsx`:
      rifle → shotgun → shieldPotion → medkit) — i.e., every item is
      reachable, just not all four are bound to a single number key.
-     `InstructionsModal.tsx`'s copy reflects this interpretation.
+     `components/ui/InstructionsModal.tsx`'s copy reflects this interpretation.
   3. **Right-click "Aim" in a third-person game.** The brief listed
      "Right click: aim" alongside a third-person camera requirement,
      which are somewhat in tension (traditional ADS is a first-person
      concept). This was implemented as a camera-distance pull-in + FOV
      narrowing + tighter effective spread while held, rather than a
-     perspective switch — see `LocalPlayer.tsx`'s `isAiming`-driven
+     perspective switch — see `components/game/LocalPlayer.tsx`'s `isAiming`-driven
      camera/FOV logic.
 - **Reasoning:** **Inferred** — these are reconstructed from the gap
   between the (out-of-repo) original brief's wording and the concrete
@@ -494,7 +494,7 @@ sources supports.
   authoritative snapshot needed to resume: `phase`, `round`, `score`,
   the reconnecting player's own `health`/`shield`, the opponent's
   `health`/`shield`, and the current `builds` array. The client
-  (`OnlineDuelScene.tsx`) hydrates every relevant store from this one
+  (`components/game/OnlineDuelScene.tsx`) hydrates every relevant store from this one
   message and sets `matchStarted = true`, skipping the lobby overlay
   entirely.
 - **Reasoning:** **Verified live** — reproduced the stuck-lobby bug via
@@ -591,10 +591,10 @@ sources supports.
   (a) throw/surface a clear, user-visible error state — not (b) fail the
   build. A new `PartyHostUnconfiguredError` is thrown from
   `getPartyHost()` when the var is unset and
-  `window.location.hostname !== "localhost"`. `OnlineDuelScene.tsx`'s
+  `window.location.hostname !== "localhost"`. `components/game/OnlineDuelScene.tsx`'s
   connect effect wraps `client.connect()` in a try/catch; on failure it
   sets `status: "disconnected"` and `errorMessage` to the error's
-  message, which `OnlineLobbyOverlay.tsx` already renders (that field
+  message, which `components/ui/OnlineLobbyOverlay.tsx` already renders (that field
   existed and was already wired into the UI, previously only fed by the
   server's `error` message type — now also fed by this client-side
   failure).
@@ -641,7 +641,7 @@ sources supports.
     flip-flopping between pushing and holding — gates whether the bot
     closes distance when the player is far, versus holding ground while
     still aiming/firing.
-  - `viewDistance`: `BotPlayer.tsx`'s `canSee` now also requires
+  - `viewDistance`: `components/game/BotPlayer.tsx`'s `canSee` now also requires
     `distance <= BOT_DIFFICULTY[difficulty].viewDistance`, which
     previously had no distance cap at all (any clear line-of-sight
     counted as "seen", regardless of range).
@@ -668,22 +668,22 @@ sources supports.
 - **Date:** 2026-08-06, during the T-002–T-010 cleanup pass
 - **Status:** Fixed, in effect
 - **Context:** Three config fields in `game/config/movement.ts`/
-  `builds.ts` were defined but never read: `groundFriction`,
+  `game/config/builds.ts` were defined but never read: `groundFriction`,
   `turnSmoothing`, `destructionEffectDuration`. Two had an obvious
   pre-existing near-duplicate in the code (a hardcoded literal doing the
   same job); one didn't.
 - **Decision:**
-  - `turnSmoothing` (14): `BotPlayer.tsx` and `RemotePlayer.tsx` each had
+  - `turnSmoothing` (14): `components/game/BotPlayer.tsx` and `components/game/RemotePlayer.tsx` each had
     a hardcoded `10` passed as the damping-speed argument to
     `THREE.MathUtils.damp(...)` for body-rotation-toward-facing. Replaced
     both with `MOVEMENT.turnSmoothing`.
-  - `destructionEffectDuration` (0.6): `EffectsLayer.tsx` had its own
+  - `destructionEffectDuration` (0.6): `components/game/EffectsLayer.tsx` had its own
     local `DESTRUCTION_LIFE = 0.6` constant. Replaced both use sites with
     `BUILD_CONFIG.destructionEffectDuration`, imported from
     `game/config/builds.ts`.
   - `groundFriction`: **deleted**, not wired up. Movement in this
     project is direct per-frame displacement toward a desired velocity
-    (see `useCharacterMover.ts`) — there's no velocity-integration step
+    (see `game/physics/useCharacterMover.ts`) — there's no velocity-integration step
     where "friction" (gradual deceleration) would naturally apply without
     a materially larger change to the movement model, which is out of
     scope for what was meant to be a dead-code cleanup task.

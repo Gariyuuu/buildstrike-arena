@@ -7,7 +7,9 @@ files, verified against the repository on 2026-08-06 (most recently
 after a session that actually ran and fixed real bugs in Online 1v1 —
 see `SESSION_LOG.md`'s latest entry), with a 2026-08-07 doc-only
 checkpoint pass on top (git state, deploy liveness, secret scan — see
-`PROJECT_STATE.md`'s "2026-08-07 checkpoint findings"). **Note:** the
+`PROJECT_STATE.md`'s "2026-08-07 checkpoint findings"), with a further
+**2026-08-17** doc-only accuracy pass on top of that (see
+`PROJECT_STATE.md`'s "2026-08-17 checkpoint findings"). **Note:** the
 numbered "What was the previous agent doing" history below stops at the
 2026-08-06 `T-010` session and predates the "Lobby Update" (v0.2.0)
 expansion — progression/cosmetics/daily-rewards/Training-Arena, a git
@@ -15,7 +17,13 @@ repo + GitHub remote, the first live deploy, and at least one further
 commit since (a character-model visual fix). See `CHANGELOG.md` and
 `SESSION_LOG.md` for that later history; this section wasn't rewritten
 to keep the checkpoint pass scoped, but don't assume it's the full
-story.
+story. **As of the 2026-08-17 pass, that later history has grown
+further still** — an 8-weapon roster expansion, redeem codes, keybind
+rebinding, a theme picker, quests/achievements, an emote system, a
+`thinking-orbs` UI dependency, and a merged `fix/motion-a11y`
+(reduced-motion/ARIA) branch have all landed on `main`, plus one more
+unpushed commit on a local `chore/polish` branch. See
+`PROJECT_STATE.md` → Git state for the exact current branch/commit.
 
 ## Is this deployed anywhere?
 
@@ -49,7 +57,7 @@ In this order:
    `DEPLOYMENT.md`/`TESTING.md` by design; keep both in sync if either
    changes).
 
-## What is the current task?
+## Current task
 
 **None in progress.** `TASKS.md` `T-001` through `T-010` are all
 complete — the entire priority-ordered queue from the original
@@ -228,23 +236,33 @@ Arena, a browser-based 3D 1v1 build-and-shoot game (Next.js + React
 Three Fiber + Rapier), with a separate Cloudflare Worker backend for
 online multiplayer.
 
-Ground truth as of the 2026-08-07 doc checkpoint (verify it's still
+Ground truth as of the 2026-08-17 doc checkpoint (verify it's still
 true — this repo moves fast):
 - It IS a real git repo now, with its own commit history and a GitHub
-  remote (`origin` -> github.com/Gariyuuu/buildstrike-arena.git, branch
-  `main`). This project used to have zero commits — that's no longer
-  true; don't trust any older doc text that still says otherwise.
+  remote (`origin` -> github.com/Gariyuuu/buildstrike-arena.git). This
+  project used to have zero commits — that's no longer true; don't trust
+  any older doc text that still says otherwise.
+- **The checked-out branch as of 2026-08-17 is `chore/polish`, not
+  `main`** — a local-only branch (no upstream set, not pushed to
+  GitHub) 1 commit ahead of `main`. `main` itself is up to date with
+  `origin/main`. Don't assume `main` is checked out without running
+  `git branch --show-current` yourself.
 - Both halves are live: the app on Vercel
   (https://buildstrike-arena.vercel.app, CLI-deployed, no Git
   integration) and the realtime backend on Cloudflare Workers
   (buildstrike-arena-realtime.chamber-seven.workers.dev). Both answered
-  HTTP 200 as of this checkpoint.
-- This project has shown bursts of very active iteration (new commits
-  and new Vercel production deployments landing minutes apart during
-  the 2026-08-07 checkpoint) — possibly from a concurrent session. Treat
-  any "current state" snapshot in these docs, including this one, as
-  provisional until you re-check `git log`/`git status`/`vercel ls`
-  yourself.
+  HTTP 200 as of the 2026-08-17 checkpoint (and the 2026-08-07 one
+  before it). Not verified: whether the live deployed bundle matches
+  current `HEAD` — both are CLI-deployed, so a `200` doesn't prove that.
+- This project has shown bursts of very active iteration — 10 more
+  commits landed on `main` between the 2026-08-07 and 2026-08-17
+  checkpoints (weapon-roster expansion, redeem codes, keybind
+  rebinding, a theme picker, quests/achievements, emotes, a
+  `thinking-orbs` dependency, and a merged `fix/motion-a11y`
+  accessibility branch), none of which have matching entries in
+  `TASKS.md`/`FEATURES.md`. Treat any "current state" snapshot in these
+  docs, including this one, as provisional until you re-check
+  `git log`/`git status`/`git branch -a` yourself.
 
 After reading those files:
 1. Run `git status`, `git log --oneline -10`, and `git fetch origin` to
