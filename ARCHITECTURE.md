@@ -78,13 +78,13 @@ flowchart TB
   `gameStore.mode`. Renders `<EffectsLayer>` as a Canvas sibling (still
   inside the R3F tree, outside `<Physics>` since effects don't need
   physics) and `<HUD>` as a DOM sibling *outside* the `<Canvas>` entirely.
-- `components/game/BotDuelScene.tsx` / `OnlineDuelScene.tsx` — the two
+- `components/game/BotDuelScene.tsx` / `components/game/OnlineDuelScene.tsx` — the two
   mode-specific orchestrators. Each owns match-flow side effects
   (countdown ticking for bot mode via `setInterval`; all server message
   handling for online mode) and renders exactly one `<LocalPlayer>` plus
   either one `<BotPlayer>` or one `<RemotePlayer>`.
 - `components/ui/*` — pure DOM/Tailwind, no Three.js imports. Subscribe
-  to Zustand stores reactively. `HUD.tsx` is the top-level overlay
+  to Zustand stores reactively. `components/ui/HUD.tsx` is the top-level overlay
   orchestrator, composing `Crosshair`, `CombatHud`, `Scoreboard`,
   `PauseMenu` (when `gameStore.paused`), `MatchResults` (when
   `matchStore.phase === "match-end"`), `OnlineLobbyOverlay` (when in
@@ -146,7 +146,7 @@ sequenceDiagram
 
 ## Data flow
 
-- **Local player → world:** `LocalPlayer.tsx`'s single `useFrame`
+- **Local player → world:** `components/game/LocalPlayer.tsx`'s single `useFrame`
   callback reads pointer-lock mouse delta + keyboard/mouse-button refs
   every frame, computes movement via `useCharacterMover()` (wraps
   Rapier's `KinematicCharacterController`), updates the visual
@@ -157,12 +157,12 @@ sequenceDiagram
   calls into whichever `GameAdapter` (`localAdapter` or `onlineAdapter`)
   was passed as a prop for anything that needs to leave the component
   (build placement, fire reports, heal reports, periodic state sync).
-- **Bot → world:** `BotPlayer.tsx` runs the same character-mover pattern,
+- **Bot → world:** `components/game/BotPlayer.tsx` runs the same character-mover pattern,
   driven by `BotBrain.update()` (pure function, `game/bots/fsm.ts`)
   instead of input. Reads the player's position from
   `positionTracker.local`. Applies damage to itself directly (bot mode
   has no server) and updates `playerStore.opponent` for the HUD.
-- **Remote opponent → world:** `RemotePlayer.tsx` never runs physics —
+- **Remote opponent → world:** `components/game/RemotePlayer.tsx` never runs physics —
   it exponentially damps (`THREE.MathUtils.damp`/`Vector3.lerp`) toward
   the latest `OpponentStateMsg` received over the network (interpolation
   for smooth remote movement), and writes into
@@ -180,7 +180,7 @@ sequenceDiagram
   message) in online mode, where the *server* — not this client-side
   raycast — is the actual authority on health.
 - **Builds:** `stores/buildsStore.ts` is the single shared list rendered
-  by `GameCanvas.tsx` regardless of source (local placement, bot
+  by `components/game/GameCanvas.tsx` regardless of source (local placement, bot
   placement, or a `buildConfirmed` network message). Placement validation
   (`game/building/grid.ts`'s `validatePlacement()`) is a pure function
   with no side effects, called **both** client-side (for the placement
@@ -327,5 +327,5 @@ eliminated).
    above and `SECURITY.md`.
 4. **Untested at scale/under real network conditions** — the movement
    speed-validation tolerance (`MAX_SPEED` in `party/server.ts`) and the
-   55ms client state-send throttle (`LocalPlayer.tsx`) were chosen by
+   55ms client state-send throttle (`components/game/LocalPlayer.tsx`) were chosen by
    inspection, not measured against real-world latency/jitter.

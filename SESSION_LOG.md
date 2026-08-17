@@ -65,12 +65,12 @@ newest-first.
   `party/tsconfig.json`, `eslint.config.mjs`, `postcss.config.mjs`,
   `next.config.ts`, `.gitignore`, `.env.example`, `wrangler.jsonc`,
   `CLAUDE.md` (prior one-line version), `AGENTS.md`, `README.md`,
-  `components/game/LocalPlayer.tsx`, `BotPlayer.tsx`,
-  `OnlineDuelScene.tsx`, `BotDuelScene.tsx`, `RemotePlayer.tsx`,
-  `GameCanvas.tsx`, `party/server.ts`, `game/networking/types.ts`,
-  `onlineAdapter.ts`, all `game/config/*.ts`, `game/building/grid.ts`,
+  `components/game/LocalPlayer.tsx`, `components/game/BotPlayer.tsx`,
+  `components/game/OnlineDuelScene.tsx`, `components/game/BotDuelScene.tsx`, `components/game/RemotePlayer.tsx`,
+  `components/game/GameCanvas.tsx`, `party/server.ts`, `game/networking/types.ts`,
+  `game/networking/onlineAdapter.ts`, all `game/config/*.ts`, `game/building/grid.ts`,
   `game/physics/damageable.tsx`, `stores/playerStore.ts`,
-  `matchStore.ts`, `settingsStore.ts`, `networkStore.ts`,
+  `stores/matchStore.ts`, `stores/settingsStore.ts`, `stores/networkStore.ts`,
   `app/page.tsx`, `app/layout.tsx`, plus a full repository file tree and
   targeted `grep` sweeps for `TODO`/`FIXME`/`console.log`/
   `eslint-disable`/`as any`/`localhost`/dead-config usage across the
@@ -239,7 +239,7 @@ newest-first.
   `game/config/match.ts`, `components/game/LocalPlayer.tsx`,
   `party/server.ts`, `game/networking/types.ts`,
   `components/game/OnlineDuelScene.tsx`, `stores/matchStore.ts`,
-  `components/ui/MainMenu.tsx`/`OnlineLobbyOverlay.tsx` (for test
+  `components/ui/Lobby.tsx` (renamed/refactored from a prior `components/ui/Lobby.tsx`, per session-log history)/`components/ui/OnlineLobbyOverlay.tsx` (for test
   selector purposes), `hooks/usePointerLock.ts`.
 - **Files changed:**
   - `game/config/match.ts` — fixed `PLAYER_SPAWNS` yaw (`BUG-006`)
@@ -436,7 +436,7 @@ newest-first.
   wire up `turnSmoothing`/`destructionEffectDuration`, delete
   `groundFriction` — no natural call site without a much larger
   movement-model change). `T-003`'s decision (delete
-  `MatchResults.tsx`'s Reset Arena button rather than sync it) and
+  `components/ui/MatchResults.tsx`'s Reset Arena button rather than sync it) and
   `T-008`'s decision (delete `seq` rather than wire it up — redundant
   with the existing timestamp-based speed check) are recorded directly
   in `TASKS.md`'s per-task Outcome notes rather than as separate
@@ -499,8 +499,8 @@ newest-first.
   claims in `TASKS.md`'s T-002–T-010 outcomes against the actual source
   (`PartyHostUnconfiguredError` in `game/networking/client.ts`, the
   `resetRequest` phase-guard comment in `party/server.ts`, direct
-  `BOT_DIFFICULTY[...]` reads in `BotPlayer.tsx`, the `buildRejected`
-  case in `OnlineDuelScene.tsx`, absence of `HelloMsg` in `types.ts`,
+  `BOT_DIFFICULTY[...]` reads in `components/game/BotPlayer.tsx`, the `buildRejected`
+  case in `components/game/OnlineDuelScene.tsx`, absence of `HelloMsg` in `game/networking/types.ts`,
   and that `public/` contains only `logo.svg`) — all confirmed present
   and matching the docs exactly; grepped every `.md` file for
   secret-like patterns (api key/secret/password/token/AKIA/sk-/ghp_) and
@@ -657,7 +657,7 @@ newest-first.
   `eslint`/`npm run build`, viewing the screenshots to confirm the
   visual fix), a commit (`27e328e`, "Fix head rendering as
   all-black-and-white with no visible skin tone") landed on `main`
-  containing exactly that `CharacterModel.tsx` change plus a
+  containing exactly that `components/game/CharacterModel.tsx` change plus a
   `.gitignore` entry for `shots-live/` — apparently from a concurrent
   process/session also working in this same directory, since this
   session made no commit itself. `vercel ls` also showed new production
@@ -738,3 +738,79 @@ newest-first.
   picking up product work, first re-confirm `git log`/`git status`
   fresh, since this repo has shown bursts of concurrent/fast-moving
   activity.
+
+### Session: 2026-08-17 — Doc-accuracy checkpoint (onboard-mode sweep)
+
+- **Account/agent:** Unknown (this session, part of a multi-repo
+  documentation-memory sweep; no product-work goal, arrived cold with
+  only the prior memory note as a pointer).
+- **Goal:** Verify the existing 19-file memory system against current
+  repo reality (git state, deploy liveness, dependency changes) and
+  correct anything stale — a documentation-only accuracy pass, not
+  product development.
+- **Files inspected:** `git log`/`git branch -a`/`git status`/`git
+  diff --stat` (full history plus branch comparison), `package.json`,
+  `next.config.ts`, `.vercel/project.json`, `.env.local` (names only,
+  no values read into any doc), `node_modules/thinking-orbs`
+  (existence check only), and all of `HANDOFF.md`, `CLAUDE.md`,
+  `PROJECT_STATE.md`, `TASKS.md`.
+- **Files changed:** `CLAUDE.md`, `PROJECT_STATE.md`, `TASKS.md`,
+  `HANDOFF.md` (git-state corrections, re-verified deploy liveness,
+  new "2026-08-17" verification notes layered on top of the
+  2026-08-06/2026-08-07 history — nothing rewritten wholesale),
+  `FEATURES.md` and `ROADMAP.md` (staleness notes refreshed to
+  acknowledge the gap has widened further, not rewritten), plus this
+  entry. No product/application code was touched.
+- **Tests run:** No product-code verification commands were re-run this
+  pass (no code changed) — deploy liveness was checked via `curl` only
+  (`buildstrike-arena.vercel.app` → 200, the Cloudflare Worker → 200).
+- **Problems found:**
+  - The checked-out branch was `chore/polish` (local only, no upstream,
+    1 commit ahead of `main`, working tree clean) — every prior doc
+    checkpoint assumed `main` was checked out and named `27e328e` as
+    latest; that commit is now 10 commits behind `main`'s tip
+    (`4faae82`), which is itself 1 commit behind the actually-checked-out
+    `chore/polish` (`23993ae`).
+  - A new dependency (`thinking-orbs@0.3.1`) had been added and actually
+    installed (not just declared) since the last doc pass, undocumented
+    anywhere in the core five.
+  - The known scope-drift gap flagged in `FEATURES.md`/`ROADMAP.md` on
+    2026-08-07 (Lobby Update, Battle Royale not documented) had grown by
+    10 more commits' worth of shipped feature work (weapon-roster
+    expansion, redeem codes, keybind rebinding, theme picker, quests/
+    achievements, emotes, accessibility/`fix/motion-a11y`) with still no
+    matching `TASKS.md` entries or `FEATURES.md`/`ARCHITECTURE.md`
+    updates.
+  - No secrets found — `.env.local` contains only the two previously
+    documented, non-sensitive names.
+- **Decisions made:** Did not attempt a full rewrite of
+  `FEATURES.md`/`ARCHITECTURE.md`/`ROADMAP.md`/`TASKS.md` to cover the
+  10+ commits of undocumented feature work — that would require tracing
+  each feature's actual wiring (UI → store → persistence/network → error
+  states) to avoid inventing "complete" claims, which is a substantial
+  session's worth of work on its own and out of scope for a
+  documentation-accuracy checkpoint. Instead, layered `[Verified
+  2026-08-17]` corrections onto the existing text and strengthened the
+  existing staleness notes so the gap is impossible to miss. Left
+  historical `SESSION_LOG.md` entries untouched (same reasoning as the
+  2026-08-07 entry above). Did not switch branches, merge, push, or
+  redeploy anything.
+- **Work completed:** Git-state and deploy-liveness re-verification;
+  correction of stale branch/commit claims across the core five; secret
+  scan; scope-drift documentation kept current.
+- **Work remaining:** The scope-drift gap itself (Battle Royale, Lobby
+  hub, cosmetics, quests, weapons expansion, accessibility work — all
+  shipped, none reflected in `FEATURES.md`/`ARCHITECTURE.md`/
+  `TASKS.md`) is the single largest documentation gap in this repo and
+  would be the natural next step for a future documentation session.
+  On the product side: the `chore/polish` branch has one unpushed
+  commit — decide whether to merge it to `main` and push, or continue
+  building on it. The real two-human-browser Online 1v1 test flagged in
+  every prior checkpoint is still outstanding.
+- **Recommended next action:** Either (a) do a full feature-documentation
+  pass across `FEATURES.md`/`ARCHITECTURE.md`/`TASKS.md` to close the
+  scope-drift gap (trace each shipped feature's real wiring before
+  calling it complete), or (b) resolve `chore/polish`'s unpushed-branch
+  state and continue product work from there — confirm current
+  `git branch --show-current`/`git status` fresh before doing either,
+  since this repo moves fast.

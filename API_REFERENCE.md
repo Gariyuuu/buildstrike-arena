@@ -25,7 +25,7 @@ by both sides) and cross-checked against `party/server.ts`'s actual
 
 ## WebSocket endpoint
 
-### `WSS /parties/game-room/<ROOM_CODE>?token=<token>&name=<name>`
+### `WSS /parties/game-room/<ROOM_CODE>?token=<token>&name=<player-name>`
 
 - **Source file:** `party/server.ts` (class `GameRoom`), connection
   routing via `routePartykitRequest` (from the `partyserver` library)
@@ -49,12 +49,12 @@ All are JSON objects with a `type` discriminant, sent via
 
 | Type | Shape (fields beyond `type`) | Handled by | Notes |
 |---|---|---|---|
-| `ready` | *(none)* | `case "ready"` — sets `slot.ready = true`, broadcasts room status, calls `maybeStartMatch()` | Sent by `OnlineLobbyOverlay.tsx`'s Ready button |
-| `state` | `{ position: [x,y,z], rotationY: number, isBuildMode: boolean, buildKind: "wall"\|"floor"\|"ramp", weapon: "rifle"\|"shotgun", timestamp: number }` | `case "state"` → `handleState()` | Sent every ~55ms while in combat, from `LocalPlayer.tsx`. Server validates implied speed from position delta / elapsed time; drops (silently, no error sent) updates implying speed above `MOVEMENT.walkSpeed * MOVEMENT.sprintMultiplier * 1.6`. (`HelloMsg`/`type:"hello"` and this message's old `seq` field were both removed 2026-08-06, `T-008` — dead, never read.) |
-| `fire` | `{ weapon, origin:[x,y,z], direction:[x,y,z], timestamp, hitPlayer?:{headshot,pellets}, hitBuild?:{buildId,pellets} }` | `case "fire"` → `handleFire()` | Sent on every shot (hit or miss) from `onlineAdapter.ts`'s `reportFire()`. Server enforces fire-rate (drops silently if faster than 80% of the weapon's minimum interval) and recomputes damage from `WEAPONS` config — **never trusts a client-supplied damage number** (there isn't one in the message at all, by design). |
+| `ready` | *(none)* | `case "ready"` — sets `slot.ready = true`, broadcasts room status, calls `maybeStartMatch()` | Sent by `components/ui/OnlineLobbyOverlay.tsx`'s Ready button |
+| `state` | `{ position: [x,y,z], rotationY: number, isBuildMode: boolean, buildKind: "wall"\|"floor"\|"ramp", weapon: "rifle"\|"shotgun", timestamp: number }` | `case "state"` → `handleState()` | Sent every ~55ms while in combat, from `components/game/LocalPlayer.tsx`. Server validates implied speed from position delta / elapsed time; drops (silently, no error sent) updates implying speed above `MOVEMENT.walkSpeed * MOVEMENT.sprintMultiplier * 1.6`. (`HelloMsg`/`type:"hello"` and this message's old `seq` field were both removed 2026-08-06, `T-008` — dead, never read.) |
+| `fire` | `{ weapon, origin:[x,y,z], direction:[x,y,z], timestamp, hitPlayer?:{headshot,pellets}, hitBuild?:{buildId,pellets} }` | `case "fire"` → `handleFire()` | Sent on every shot (hit or miss) from `game/networking/onlineAdapter.ts`'s `reportFire()`. Server enforces fire-rate (drops silently if faster than 80% of the weapon's minimum interval) and recomputes damage from `WEAPONS` config — **never trusts a client-supplied damage number** (there isn't one in the message at all, by design). |
 | `buildPlace` | `{ clientId: string, kind, position:[x,y,z], rotationY: number }` | `case "buildPlace"` → `handleBuildPlace()` | Server re-runs `validatePlacement()` (same pure function the client used for its preview) as the actual authority. |
 | `healStart` / `healCancel` / `healComplete` | `{ item: "shieldPotion"\|"medkit" }` (same shape, `type` distinguishes the event) | `case "healStart"\|"healCancel"\|"healComplete"` → `handleHeal()` | Only `healComplete` actually mutates health/shield server-side; start/cancel are relayed for the opponent's UI/audio feedback only. Server does **not** independently validate the player had remaining charges (documented trust gap, see `SECURITY.md`). |
-| `resetRequest` | *(none)* | `case "resetRequest"` → `resetRound(false)` (only if `this.phase === "combat"`) | Sent by `PauseMenu.tsx`'s "Reset Arena" — the only Reset Arena button left; `MatchResults.tsx`'s redundant, non-syncing copy was removed 2026-08-06 (`BUG-004`, `T-003`). Server now rejects this outside `combat` phase, fixed 2026-08-06 (`BUG-003`, `T-004`) — verified live via a raw WebSocket script. |
+| `resetRequest` | *(none)* | `case "resetRequest"` → `resetRound(false)` (only if `this.phase === "combat"`) | Sent by `components/ui/PauseMenu.tsx`'s "Reset Arena" — the only Reset Arena button left; `components/ui/MatchResults.tsx`'s redundant, non-syncing copy was removed 2026-08-06 (`BUG-004`, `T-003`). Server now rejects this outside `combat` phase, fixed 2026-08-06 (`BUG-003`, `T-004`) — verified live via a raw WebSocket script. |
 | `rematchRequest` | *(none)* | `case "rematchRequest"` | Both sides must send this before a rematch begins; server tracks `rematchRequested` per slot. |
 | `ping` | `{ t: number }` | `case "ping"` → replies `{type:"pong", t}` | Sent every 3s by `GameNetworkClient` for RTT measurement. |
 | `leave` | *(none)* | `case "leave"` → closes the connection (code 1000) | Triggers the same `onClose` cleanup path as any disconnect. |
@@ -66,26 +66,26 @@ connection via `GameRoom.send()`.
 
 | Type | Shape (fields beyond `type`) | Sent when | Handled client-side by |
 |---|---|---|---|
-| `welcome` | `{ side: "a"\|"b", roomCode: string, opponentPresent: boolean }` | Immediately on connect (or reconnect) | `OnlineDuelScene.tsx` → sets `networkStore.mySide`/`status`/`opponentPresent` |
+| `welcome` | `{ side: "a"\|"b", roomCode: string, opponentPresent: boolean }` | Immediately on connect (or reconnect) | `components/game/OnlineDuelScene.tsx` → sets `networkStore.mySide`/`status`/`opponentPresent` |
 | `roomStatus` | `{ opponentPresent, opponentConnected, opponentReady }` | After any connect/disconnect/ready change | Updates `networkStore` |
 | `matchStart` | `{ countdown: number, isNewMatch: boolean }` | Both slots ready from `lobby` phase, a rematch (`isNewMatch: true`), **or** the ordinary countdown before every next round of an in-progress match (`isNewMatch: false`) | `matchStore.applyServerCountdown()`, clears builds/HUD, sets `networkStore.matchStarted = true`. `isNewMatch` gates whether score/round reset to 0/1 — added 2026-08-06 after a live two-client test found the client couldn't otherwise tell a rematch apart from an ordinary round transition (both broadcast this same message type) and was resetting score every round; see `DECISIONS.md` D-016 |
 | `roundStart` | `{ round: number }` | 3s after `matchStart` (or after a round reset with a new countdown) | `matchStore.applyServerCombatStart()` |
-| `opponentState` | `{ position, rotationY, isBuildMode, buildKind, weapon, timestamp }` | Relay of the other player's `state` message (only if it passed the speed check) | `RemotePlayer.tsx`'s `netStateRef`, interpolated every frame |
-| `opponentFired` | `{ weapon, origin, direction }` | Relay of the other player's `fire` message | `RemotePlayer.tsx` — triggers muzzle flash/tracer/audio only, no damage logic client-side |
+| `opponentState` | `{ position, rotationY, isBuildMode, buildKind, weapon, timestamp }` | Relay of the other player's `state` message (only if it passed the speed check) | `components/game/RemotePlayer.tsx`'s `netStateRef`, interpolated every frame |
+| `opponentFired` | `{ weapon, origin, direction }` | Relay of the other player's `fire` message | `components/game/RemotePlayer.tsx` — triggers muzzle flash/tracer/audio only, no damage logic client-side |
 | `damageApplied` | `{ target: "a"\|"b", health, shield, damage, headshot }` | After `handleFire`/`applyDamage` resolves a `hitPlayer` claim | Both clients: updates `playerStore` (local or opponent depending on `target`), triggers damage flash/sound on the target's own client |
 | `buildConfirmed` | `{ clientId, build: {id,kind,owner,position,rotationY,health,maxHealth} }` | Valid `buildPlace` | `buildsStore.add()` on both clients (owner translated `a`/`b` → `local`/`opponent`) |
-| `buildRejected` | `{ clientId }` | Invalid `buildPlace` | Fixed 2026-08-06 (`T-007`): `OnlineDuelScene.tsx` now triggers `playerStore.triggerBuildDenied()` and plays a `buildDenied` sound; `CombatHud.tsx`'s `BuildDeniedToast` shows a brief "Placement denied" message. **Not independently live-repro'd** — see `TASKS.md` T-007's Outcome notes for why (client-side pre-validation blocks the only easily-scriptable trigger). |
+| `buildRejected` | `{ clientId }` | Invalid `buildPlace` | Fixed 2026-08-06 (`T-007`): `components/game/OnlineDuelScene.tsx` now triggers `playerStore.triggerBuildDenied()` and plays a `buildDenied` sound; `components/ui/CombatHud.tsx`'s `BuildDeniedToast` shows a brief "Placement denied" message. **Not independently live-repro'd** — see `TASKS.md` T-007's Outcome notes for why (client-side pre-validation blocks the only easily-scriptable trigger). |
 | `buildDamaged` | `{ buildId, health }` | A `fire` message's `hitBuild` claim reduces a build below full but above 0 | `buildsStore.damage()` |
 | `buildDestroyed` | `{ buildId }` | A `hitBuild` claim reduces a build to ≤0 | `buildsStore.remove()` + destruction VFX/SFX |
 | `healApplied` | `{ side, item, health, shield, event: "start"\|"cancel"\|"complete" }` | Relay of any heal event | Updates `playerStore`; `"start"` also triggers the opponent's potion/medkit sound on the *other* client |
 | `roundEnd` | `{ winner: "a"\|"b", score: {a,b} }` | A player's health reaches 0 | `matchStore.applyServerRoundEnd()` (score translated to `local`/`opponent`) |
-| `matchEnd` | `{ winner: "a"\|"b" }` | `score[winner] >= MATCH_CONFIG.roundsToWin` (5) | `matchStore.applyServerMatchEnd()` → shows `MatchResults.tsx` |
+| `matchEnd` | `{ winner: "a"\|"b" }` | `score[winner] >= MATCH_CONFIG.roundsToWin` (5) | `matchStore.applyServerMatchEnd()` → shows `components/ui/MatchResults.tsx` |
 | `roundReset` | *(none)* | After a non-final round ends (post-delay) or a manual `resetRequest` | Clears builds, resets HUD |
-| `opponentDisconnected` | *(none)* | The other slot's connection closes | Shows the "opponent disconnected" banner (`ConnectionStatus.tsx`) |
+| `opponentDisconnected` | *(none)* | The other slot's connection closes | Shows the "opponent disconnected" banner (`components/ui/ConnectionStatus.tsx`) |
 | `opponentReconnected` | *(none)* | The other slot reconnects with a matching token within the grace window | Clears the disconnected banner |
 | `matchResume` | `{ phase, round, score: {a,b}, yourHealth, yourShield, opponentHealth, opponentShield, builds: [...] }` | Sent to a reconnecting client (token matched an existing slot) **in addition to** `welcome`, only when `phase !== "lobby"` | `matchStore.applyServerResume()` + `playerStore.setLocal`/`setOpponent` + rehydrates `buildsStore` + sets `networkStore.matchStarted = true`. Added 2026-08-06 (`BUG-008`, see `DECISIONS.md` D-015) — without it, a client reconnecting mid-match had no way to know a match was in progress and got stuck on the pre-match lobby overlay forever. **Known gap (`BUG-010`, not fixed):** no winner field, so reconnecting during the round-end/match-end window loses the winner banner. |
 | `pong` | `{ t: number }` | Reply to `ping` | `networkStore.setPing(Date.now() - t)` |
-| `error` | `{ message: string }` | Room full (only current use) | `networkStore.setError()` → shown in `OnlineLobbyOverlay.tsx` |
+| `error` | `{ message: string }` | Room full (only current use) | `networkStore.setError()` → shown in `components/ui/OnlineLobbyOverlay.tsx` |
 
 ## Validation
 

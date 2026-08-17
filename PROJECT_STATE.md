@@ -9,12 +9,58 @@ re-deriving anything.**
 
 ## Audit record
 
-- **Timestamp of latest audit:** 2026-08-07 — a documentation-only
-  "final transfer checkpoint" pass (doc-vs-reality cross-check, secret
-  scan, git-state correction). No application code was changed this
-  pass. See the bottom of this section for what it found.
-- **Previous audit:** 2026-08-06 (later same day, second half of the
+- **Timestamp of latest audit:** 2026-08-17 — another documentation-only
+  accuracy pass (git-state re-verification, deploy-liveness re-check,
+  no-secret confirmation) on the core five memory files (`CLAUDE.md`,
+  `PROJECT_STATE.md`, `TASKS.md`, `HANDOFF.md`, `SESSION_LOG.md`). No
+  application code was changed this pass. See "2026-08-17 checkpoint
+  findings" below.
+- **Previous audit:** 2026-08-07 — a documentation-only "final transfer
+  checkpoint" pass (doc-vs-reality cross-check, secret scan, git-state
+  correction). No application code was changed this pass. See "2026-08-07
+  checkpoint findings" below for what it found.
+- **Audit before that:** 2026-08-06 (later same day, second half of the
   session that ran `T-001`) — see below for that session's detail.
+
+### 2026-08-17 checkpoint findings
+
+- **Git state had drifted significantly from what this file described.**
+  The checked-out branch is now `chore/polish` (local only, no upstream,
+  1 commit ahead of `main`) at `23993ae` — "polish: connecting Thinking
+  Orb, glitch victory/defeat headline, wire missing chip feedback"
+  (2026-08-15). `main` itself is at `4faae82` (up to date with
+  `origin/main`), 10 commits past the `27e328e` this file previously
+  named as latest — those 10 include a merged `fix/motion-a11y` branch
+  (reduced-motion + ARIA support) and several visual/gameplay polish
+  commits (arm/hand pose fixes, emote-facing fixes, skin-tone/hair
+  fixes). Working tree is clean on `chore/polish` — no uncommitted or
+  untracked changes. See "Git state" below for the corrected snapshot.
+- **New dependency since the last audit:** `thinking-orbs@0.3.1` was
+  added to `package.json` (on `chore/polish`, not yet on `main`) and is
+  actually installed in `node_modules` (`npm ls thinking-orbs` confirms)
+  — not just declared.
+- **Both live deploys re-confirmed reachable:** `curl` to
+  `https://buildstrike-arena.vercel.app` → `200`;
+  `curl` to `https://buildstrike-arena-realtime.chamber-seven.workers.dev`
+  → `200`. **Not verified:** whether the currently-deployed build
+  actually matches current `HEAD` — both are CLI-deployed
+  (`vercel --prod` / `wrangler deploy`), not Git-integration-deployed, so
+  a live `200` doesn't by itself prove the deployed bundle reflects
+  `chore/polish`'s or even `main`'s latest commit. **[Needs
+  confirmation]** if that matters for the next session's work.
+- `.env.local` (untracked, correctly gitignored) still contains only
+  `NEXT_PUBLIC_PARTY_HOST` and a short-lived `VERCEL_OIDC_TOKEN` (names
+  checked, not values) — consistent with the 2026-08-07 finding, no new
+  secret shapes observed.
+- **Scope drift, not just git drift:** `FEATURES.md`, `ARCHITECTURE.md`,
+  `ROADMAP.md`, and `TASKS.md` were already flagged 2026-08-07 as
+  predating the "Lobby Update" (progression/cosmetics/Training Arena)
+  and Battle Royale mode. That gap has widened further (8-weapon roster,
+  redeem codes, keybind rebinding, theme picker, quests/achievements,
+  emotes, `thinking-orbs`, accessibility work) — none of it was folded
+  into those files this pass either; this was a core-five accuracy pass,
+  not a full feature-documentation rewrite. `CHANGELOG.md` and `git log`
+  remain the actual source of truth for what has shipped.
 - **What happened in the 2026-08-06 session:** Worked through the entire
   remaining `TASKS.md` priority queue, `T-002` through `T-010` — nine
   tasks covering `BUG-001` through `BUG-005` and `BUG-003b`, plus three
@@ -26,7 +72,7 @@ re-deriving anything.**
 ### 2026-08-07 checkpoint findings
 
 - Found one already-committed application change (`27e328e`, a
-  `CharacterModel.tsx` face/hair visual fix) that had landed since the
+  `components/game/CharacterModel.tsx` face/hair visual fix) that had landed since the
   last doc update — verified it passes `tsc`/`eslint`/`build` and looks
   correct in local screenshots (`shots-live/`, gitignored). No doc update
   was needed for it beyond this note since it isn't part of a documented
@@ -49,29 +95,46 @@ re-deriving anything.**
 
 ## Git state
 
-**Corrected 2026-08-07 — the "no git repo" framing below and elsewhere in
-this doc set is stale.** A dedicated git repository was initialized for
-this project on 2026-08-06 (see `CHANGELOG.md`'s v0.2.0 entry) and has
-since accumulated real commit history, including a GitHub remote.
+**Corrected again 2026-08-17 — see below for the current snapshot; the
+2026-08-07 snapshot that used to be here is now out of date (kept in
+git history of this file if needed, not reproduced here to avoid two
+competing "current" claims).**
 
 - **Repository root (per `git rev-parse --show-toplevel`):**
   `/Users/gariyuu/Projects/buildstrike-arena` — its own repo, **not** a
   subfolder of the parent `~/Projects` repo.
 - **Remote:** `origin` → `https://github.com/Gariyuuu/buildstrike-arena.git`
-  (fetch+push). Branch `main` tracks `origin/main` and was up to date
-  with it as of this audit.
-- **Current branch:** `main`
-- **Latest commit hash (as of this audit):** `27e328e` — "Fix head
-  rendering as all-black-and-white with no visible skin tone" (character
-  model face/hair visual fix — see `CharacterModel.tsx`).
-- **Working tree clean?** Yes, as of this audit — no staged or unstaged
-  changes, no untracked tracked-worthy files (`shots-live/` is a
-  gitignored local debug-screenshot folder, not source).
-- **Note for future sessions:** this repo has been under very active,
-  fast iteration — during this same audit, new Vercel production
-  deployments were observed landing minutes apart. Re-run `git status`/
-  `git log` fresh at the start of any session rather than trusting this
-  snapshot for long.
+  (fetch+push).
+- **Current branch:** `chore/polish` — **local only, no upstream
+  tracking branch set** (`git for-each-ref` shows no `origin/chore/polish`),
+  1 commit ahead of `main`. This branch's work has **not** been pushed
+  to GitHub.
+- **`main`:** at `4faae82`, tracks `origin/main`, and is up to date with
+  it (`git rev-parse main origin/main` match). A separate branch
+  `fix/motion-a11y` also exists locally but is already fully merged into
+  `main` (via merge commit `4faae82`) — it's not ahead of `main` in any
+  way that matters.
+- **Latest commit hash (as of this audit, on `chore/polish`):**
+  `23993ae` — "polish: connecting Thinking Orb, glitch victory/defeat
+  headline, wire missing chip feedback" (2026-08-15). Touches
+  `app/globals.css`, four `components/ui/*.tsx` files, and adds the
+  `thinking-orbs` dependency to `package.json`/`package-lock.json`.
+- **Working tree clean?** Yes, as of this audit — `git status` shows no
+  staged or unstaged changes and no untracked files.
+- **Commits since the 2026-08-07 checkpoint's `27e328e`:** 10, ending at
+  `main`'s `4faae82`, plus 1 more on top on `chore/polish` (`23993ae`).
+  Notable ones: a full weapon-roster expansion to 8 weapons + redeem
+  codes + keybind rebinding, a theme picker, invisible-UI production
+  bugfixes (`01ac674`, `7eeefa4`), a Battle Royale performance fix
+  (`21a02e3`), and `fix/motion-a11y` (reduced-motion guards + ARIA live
+  regions, merged via `4faae82`).
+- **Note for future sessions:** this repo continues to be under active,
+  fast iteration (11 commits in the ~9 days between the 2026-08-07 and
+  2026-08-17 checkpoints). Re-run `git status`/`git log`/`git branch -a`
+  fresh at the start of any session rather than trusting this snapshot
+  for long — and check which branch is actually checked out, since the
+  last session left `chore/polish` checked out with unpushed work rather
+  than `main`.
 
 ## Active development objective
 
@@ -88,14 +151,14 @@ the prior session's checkpoint:
 1. **`T-002` (`BUG-001`)** — `NEXT_PUBLIC_PARTY_HOST` unset now throws a
    clear `PartyHostUnconfiguredError` in production instead of silently
    falling back to `localhost:8787`; surfaced as a visible message in
-   `OnlineLobbyOverlay.tsx`. See D-017.
+   `components/ui/OnlineLobbyOverlay.tsx`. See D-017.
 2. **`T-003` (`BUG-004`)** — Removed the redundant "Reset Arena" button
-   from the post-match `MatchResults.tsx` screen (decision: delete, not
+   from the post-match `components/ui/MatchResults.tsx` screen (decision: delete, not
    sync — it never did anything meaningful post-match).
 3. **`T-004` (`BUG-003`)** — `resetRequest` is now rejected server-side
    unless `this.phase === "combat"`. **Verified live** via a raw
    WebSocket script (see below).
-4. **`T-005` (`BUG-002`)** — `BotPlayer.tsx` now reads
+4. **`T-005` (`BUG-002`)** — `components/game/BotPlayer.tsx` now reads
    `BOT_DIFFICULTY[difficulty]` directly instead of two hardcoded
    duplicate local functions.
 5. **`T-005b` (`BUG-005`)** — Server now reads build health from
@@ -192,6 +255,11 @@ None. All verification commands re-run after the fixes returned exit 0.
 None for continuing local development or further deployment.
 
 ## Deployment (new as of 2026-08-06)
+
+**[Re-verified 2026-08-17]** Both URLs below still answer `200`. Not
+re-verified this pass: whether the deployed bundle matches current
+`HEAD` (see "2026-08-17 checkpoint findings" above) — no redeploy was
+performed as part of this documentation-only pass.
 
 **The app is now live:**
 - App: https://buildstrike-arena.vercel.app (Vercel, `garywangsmes-8349s-projects/buildstrike-arena`, deployed via `vercel --prod` CLI — `vercel project inspect` shows no Git Repository field, so it's still CLI-deployed, not Git-integration-deployed, even though a git repo/GitHub remote now exists for this project; see `Git state` above)

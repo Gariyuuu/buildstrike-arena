@@ -14,6 +14,24 @@ git state, deploy liveness, and secret-scanning re-verified on
 changed that pass). Where a fact could not be verified, it is labeled
 `Unknown` or `Inferred`.
 
+**[Verified 2026-08-17]** Git state, deploy liveness, and the "Current
+status" section below were re-verified again on this date (another
+doc-only pass, no application code changed) and found meaningfully
+stale — the repo had moved on considerably since 2026-08-07. See
+`PROJECT_STATE.md` → Git state for the corrected snapshot. Short
+version: this project is on a local branch `chore/polish` (1 commit
+ahead of `main`, not yet pushed), `main` itself gained 10 more commits
+since the 2026-08-07 checkpoint (an 8-weapon roster expansion, redeem
+codes, keybind rebinding, a theme picker, quests/achievements, an emote
+system, a new `thinking-orbs` UI dependency, and a merged
+`fix/motion-a11y` branch adding reduced-motion/ARIA support), and both
+live deploys (Vercel app + Cloudflare Worker) still answer `200`. The
+"Current status"/"Known issues" sections immediately below were **not**
+rewritten to cover that new work — they still describe the 2026-08-06/07
+snapshot (Bot Duel + Online 1v1 bug-fix pass) — see `FEATURES.md` and
+`ROADMAP.md`'s own staleness notes and `git log`/`CHANGELOG.md` for what
+has actually shipped since.
+
 ## Project identity
 
 - **Name:** BuildStrike Arena
@@ -39,13 +57,17 @@ changed that pass). Where a fact could not be verified, it is labeled
 - **Production status:** **Live.** Deployed on Vercel
   (https://buildstrike-arena.vercel.app) plus a Cloudflare Worker
   (`buildstrike-arena-realtime.chamber-seven.workers.dev`) since
-  2026-08-06 — both re-verified reachable (`curl` → `200`) as of the
-  2026-08-07 doc audit. A dedicated git repository with a GitHub remote
+  2026-08-06 — both re-verified reachable (`curl` → `200`) again as of
+  **2026-08-17** (previously also re-verified 2026-08-07). A dedicated
+  git repository with a GitHub remote
   (`github.com/Gariyuuu/buildstrike-arena`) also exists as of
   2026-08-06 — see `PROJECT_STATE.md` → Git state for the current exact
   commit/branch state; do not assume the older "no git repo, not
   deployed" framing that may still linger in historical `SESSION_LOG.md`
-  entries below this date.
+  entries below this date. **Note:** both deploys are CLI-deployed
+  (`vercel --prod` / `wrangler deploy`), not Git-integration-deployed —
+  a `200` on the live URL is not proof the deployed build matches the
+  current git `HEAD`; re-deploy explicitly if you need that guarantee.
 - **Repository type:** Single Next.js app (App Router) with one embedded
   secondary deployable: a Cloudflare Worker at `party/server.ts` for the
   realtime multiplayer backend. Not a monorepo (no workspaces/turborepo),
@@ -81,6 +103,12 @@ See `PROJECT_STATE.md` for the full, precise snapshot. Summary:
   commits (a character-model visual fix, `27e328e`) — this is an
   actively-iterated project, not a frozen prototype; check `git log`
   fresh rather than trusting this line for long.
+  **[Verified 2026-08-17]** That check was done again: `main` is now at
+  `4faae82` (10 commits past `27e328e`, incl. `fix/motion-a11y` merged
+  in), both deploys still answer `200`, and the checked-out branch is a
+  local, unpushed `chore/polish` (1 commit ahead of `main`, no upstream
+  set) at `23993ae` — working tree clean, nothing uncommitted. See
+  `PROJECT_STATE.md` → Git state for the full detail.
 - **Current blockers:** None for local development or production use.
   `NEXT_PUBLIC_PARTY_HOST` is configured in Vercel's Production
   environment (pointing at the live Worker host) — see `DEPLOYMENT.md`.
@@ -278,8 +306,8 @@ All **Verified** (observed consistently across the codebase, not
 aspirational):
 
 - **Files:** One React component per file, PascalCase filename matching
-  the exported component (`LocalPlayer.tsx` exports `LocalPlayer`).
-  Non-component modules are camelCase (`hitscan.ts`, `effectsBus.ts`).
+  the exported component (`components/game/LocalPlayer.tsx` exports `LocalPlayer`).
+  Non-component modules are camelCase (`game/weapons/hitscan.ts`, `game/effects/effectsBus.ts`).
 - **Imports:** `@/*` path alias (maps to repo root) used everywhere
   **except** files reachable from `party/server.ts`, which use relative
   imports (see Repository structure note above — this is load-bearing,
@@ -291,7 +319,7 @@ aspirational):
 - **Config-driven tuning:** Gameplay constants live in `game/config/*.ts`
   as `as const` objects, never as magic numbers inline in components —
   **except** the specific violations documented in `TASKS.md`
-  (`BotPlayer.tsx` duplicates two `BOT_DIFFICULTY` values as local hardcoded
+  (`components/game/BotPlayer.tsx` duplicates two `BOT_DIFFICULTY` values as local hardcoded
   functions instead of reading the config; several `BOT_DIFFICULTY` and
   `MOVEMENT`/`BUILD_CONFIG` fields are defined but never read anywhere —
   see `DECISIONS.md` D-010 and `TASKS.md` bugs `BUG-002`/`BUG-003`).
@@ -302,13 +330,13 @@ aspirational):
   (`useStore((s) => s.x)`) are reserved for values actually rendered in
   JSX. **This split is intentional and load-bearing — do not "clean up"
   `getState()` calls into hook subscriptions inside `useFrame` bodies.**
-- **Networking abstraction:** Gameplay code (`LocalPlayer.tsx`) never
+- **Networking abstraction:** Gameplay code (`components/game/LocalPlayer.tsx`) never
   branches on `mode === "online"` for game logic beyond a handful of
   documented spots (damage application, heal application) — it calls a
   `GameAdapter` interface (`game/networking/adapter.ts`) implemented once
-  per mode (`localAdapter.ts` / `onlineAdapter.ts`). Preserve this
+  per mode (`game/networking/localAdapter.ts` / `game/networking/onlineAdapter.ts`). Preserve this
   abstraction when adding new player actions.
-- **Effect cleanup discipline:** `useCharacterMover.ts` deliberately does
+- **Effect cleanup discipline:** `game/physics/useCharacterMover.ts` deliberately does
   **not** clean up its Rapier character controller on unmount — see the
   comment in that file and `DECISIONS.md` D-004 (React Strict Mode +
   Rapier double-invoke corruption bug found and fixed during the build).
@@ -475,18 +503,18 @@ Highlights an agent should know before touching related code:
 1. **~~`NEXT_PUBLIC_PARTY_HOST` unset → silent localhost fallback~~ —
    FIXED 2026-08-06 (`BUG-001`, `T-002`).** `getPartyHost()` now throws a
    clear `PartyHostUnconfiguredError` when unset outside `localhost`,
-   surfaced as a visible error in `OnlineLobbyOverlay.tsx`. See
+   surfaced as a visible error in `components/ui/OnlineLobbyOverlay.tsx`. See
    `DECISIONS.md` D-017.
 2. **~~"Reset Arena" inconsistent between two screens~~ — FIXED
    2026-08-06 (`BUG-004`, `T-003`).** The non-syncing button on
-   `MatchResults.tsx` was removed entirely (decision: it never did
-   anything meaningful post-match). `PauseMenu.tsx`'s version (the one
+   `components/ui/MatchResults.tsx` was removed entirely (decision: it never did
+   anything meaningful post-match). `components/ui/PauseMenu.tsx`'s version (the one
    that matters, mid-match) is unchanged.
 3. **~~Server doesn't phase-guard `resetRequest`~~ — FIXED 2026-08-06
    (`BUG-003`, `T-004`).** `resetRequest` is now rejected unless
    `this.phase === "combat"` — verified live via a raw WebSocket script.
 4. **~~Duplicated bot-difficulty values~~ — FIXED 2026-08-06 (`BUG-002`,
-   `T-005`).** `BotPlayer.tsx` now reads `BOT_DIFFICULTY[difficulty]`
+   `T-005`).** `components/game/BotPlayer.tsx` now reads `BOT_DIFFICULTY[difficulty]`
    directly; the two hardcoded local functions are deleted.
 5. **~~Dead/unused `BOT_DIFFICULTY` fields~~ — FIXED 2026-08-06
    (`BUG-003b`, `T-006`).** `reactionTime`/`aggression`/`viewDistance`
@@ -495,7 +523,7 @@ Highlights an agent should know before touching related code:
    were also wired up (`T-010`, D-019); `MOVEMENT.groundFriction` was
    deleted (no natural call site — see D-019 for why).
 6. **~~Dead protocol fields~~ — FIXED 2026-08-06 (`T-008`).**
-   `HelloMsg` and `StateMsg.seq` (and `LocalPlayer.tsx`'s unused
+   `HelloMsg` and `StateMsg.seq` (and `components/game/LocalPlayer.tsx`'s unused
    `stateSeq` ref) have been removed from the wire protocol entirely.
 7. **~~Unused leftover assets~~ — FIXED 2026-08-06 (`T-009`).** The six
    unreferenced `public/` files/directory are deleted.

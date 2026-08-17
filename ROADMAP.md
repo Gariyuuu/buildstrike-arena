@@ -21,6 +21,16 @@ the actual source of truth for what's shipped until someone does a full
 pass to bring these files current. The two specific items below are
 corrected since they're actively misleading (not just incomplete):
 
+**[Verified 2026-08-17]** Still stale, and more so: `git log` now shows
+10 more commits past the state this note described (weapon-roster
+expansion to 8 weapons, redeem codes, keybind rebinding, a theme picker,
+quests/achievements, an emote system, a `thinking-orbs` dependency, and
+a `fix/motion-a11y` branch — reduced-motion + ARIA support — now merged
+to `main`). Current work is on an unmerged local branch `chore/polish`
+(1 commit ahead of `main`, not pushed to `origin` — see
+`PROJECT_STATE.md` → Git state). This file was not rewritten this pass
+either — same reasoning as `FEATURES.md`'s staleness note.
+
 ## Current milestone: Verify Online 1v1 end-to-end
 
 **Corrected status: this milestone is DONE, not "Not started"** — see

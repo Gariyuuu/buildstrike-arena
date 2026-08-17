@@ -34,7 +34,7 @@ Full detail in `SESSION_LOG.md`; see also the in-game Patch Notes
   damage dealt, and first win of the day; coins awarded for playing and
   winning; full match/win/loss/elimination/damage/streak stats tracked
   and shown in the new Profile tab. Wired into real match outcomes via
-  `MatchResults.tsx`, which now shows an XP/coins/level-up summary.
+  `components/ui/MatchResults.tsx`, which now shows an XP/coins/level-up summary.
 - **Daily login rewards** (`game/config/dailyRewards.ts`): a 7-day coin/
   cosmetic cycle, one claim per calendar day, shown as a popup on lobby
   entry when available.
@@ -81,7 +81,7 @@ Full detail in `SESSION_LOG.md`; see also the in-game Patch Notes
 - **Fixed `BUG-003`:** the server now rejects `resetRequest` unless a
   match is actually in `combat` phase, preventing it from clobbering the
   round-end→countdown→combat sequence if triggered at the wrong moment.
-- **Fixed `BUG-002`:** `BotPlayer.tsx` no longer duplicates
+- **Fixed `BUG-002`:** `components/game/BotPlayer.tsx` no longer duplicates
   aim-accuracy/move-speed values in local hardcoded functions — reads
   `BOT_DIFFICULTY[difficulty]` directly.
 - **Fixed `BUG-005`:** the server no longer hardcodes build health as a
@@ -94,7 +94,7 @@ Full detail in `SESSION_LOG.md`; see also the in-game Patch Notes
 - Added a `buildRejected` UI reaction (toast + sound) that was
   previously entirely unhandled client-side.
 - Removed dead protocol fields (`HelloMsg`, `StateMsg.seq`) and their
-  last client-side remnant (`LocalPlayer.tsx`'s unused `stateSeq` ref).
+  last client-side remnant (`components/game/LocalPlayer.tsx`'s unused `stateSeq` ref).
 - Deleted six unused leftover `public/` assets from the original
   `create-next-app` scaffold.
 - Wired up two more previously-dead config fields
@@ -171,7 +171,7 @@ Full detail in `SESSION_LOG.md`; see also the in-game Patch Notes
   differently depending on which screen it's clicked from in online mode
   (`BUG-004`); the server hardcodes build health instead of reading it
   from config (`BUG-005`); several dead protocol/config fields exist
-  (`HelloMsg`, `StateMsg.seq`, `LocalPlayer.tsx`'s own `stateSeq`,
+  (`HelloMsg`, `StateMsg.seq`, `components/game/LocalPlayer.tsx`'s own `stateSeq`,
   `MOVEMENT.groundFriction`/`turnSmoothing`,
   `BUILD_CONFIG.destructionEffectDuration`); six unused/leftover files
   exist under `public/`. None of these were fixed as part of this
